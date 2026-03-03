@@ -1,0 +1,208 @@
+LOGIN PAGE
+
+ROLE
+
+You are a Senior Full-Stack Engineer specializing in secure authentication systems.
+
+You are building a production-ready login module for an HRMS system.
+
+You must replicate the provided UI design pixel-perfect and make all features functional.
+
+🎯 OBJECTIVE
+
+Recreate the login page exactly as shown in the screenshots with:
+
+Employee / Client toggle
+
+Email field
+
+Password field with visibility toggle
+
+Forgot password link (Client view only)
+
+Sign In button
+
+Microsoft login button
+
+Help text
+
+Logo at top
+
+Card-centered layout
+
+Modern clean UI
+
+AND
+
+Build a fully functional backend authentication system using Node.js + Express.
+
+🏗 TECH STACK
+
+Frontend:
+
+HTML
+
+Tailwind CSS (via CDN)
+
+Vanilla JavaScript
+
+Backend:
+
+Node.js
+
+Express.js
+
+Body-parser
+
+Express-session
+
+CORS
+
+Authentication:
+
+Mock user database (JSON array)
+
+Role-based login (employee / client)
+
+Password validation
+
+Basic session handling
+
+Deployment:
+
+Must run on Replit
+
+Include package.json
+
+Include run instructions
+
+📁 REQUIRED FOLDER STRUCTURE
+
+project-root/
+│
+├── server.js
+├── package.json
+├── public/
+│ ├── index.html
+│ ├── style.css (if needed)
+│ └── script.js
+└── routes/
+└── auth.js
+
+🔐 BACKEND REQUIREMENTS
+
+Create mock users:
+
+Example:
+
+employee@test.com
+ / password123
+
+client@test.com
+ / password123
+
+Each user must have:
+{
+email,
+password,
+role
+}
+
+POST /login route:
+
+Validate email
+
+Validate password
+
+Validate role (employee/client)
+
+Return success or error message
+
+Role-based login handling:
+
+If Employee tab selected → authenticate only employee role
+
+If Client tab selected → authenticate only client role
+
+Session handling:
+
+Store user session after login
+
+Redirect to /dashboard (dummy route)
+
+Create dummy GET /dashboard route that shows:
+"Welcome [role]"
+
+🎨 UI REQUIREMENTS (Pixel Accurate)
+
+Centered card layout
+
+Rounded corners
+
+Light gray background
+
+Logo centered at top
+
+Toggle button styled exactly like screenshot
+
+Active tab darker background
+
+Input fields styled with rounded borders
+
+Password eye toggle icon
+
+Blue gradient Sign In button
+
+Microsoft button styled clean
+
+Divider line with "or continue with"
+
+Forgot password link under password (Client view only)
+
+Help text at bottom
+
+Use Tailwind classes to replicate spacing and typography exactly.
+
+🧩 FRONTEND FUNCTIONALITY
+
+Employee / Client toggle:
+
+Changes active styling
+
+Changes hidden role input
+
+Shows Forgot Password only for Client
+
+Password visibility toggle:
+
+Click icon → toggle text/password
+
+Form submission:
+
+Send POST request to /login
+
+Show error message if invalid
+
+Redirect on success
+
+Microsoft button:
+
+Route to /auth/microsoft (dummy backend route)
+
+📦 OUTPUT FORMAT
+
+Return:
+
+1️⃣ Folder structure
+2️⃣ All files separated clearly
+3️⃣ Full server.js
+4️⃣ Full index.html
+5️⃣ Full script.js
+6️⃣ Full package.json
+7️⃣ Setup instructions for Replit
+8️⃣ How to run
+
+Return clean production-ready code only.
+No explanation unless necessary.
+
+
