@@ -2,9 +2,25 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import session from "express-session";
+import createMemoryStore from "memorystore";
+
+const MemoryStore = createMemoryStore(session);
 
 const app = express();
 const httpServer = createServer(app);
+
+app.use(
+  session({
+    cookie: { maxAge: 86400000 },
+    store: new MemoryStore({
+      checkPeriod: 86400000,
+    }),
+    resave: false,
+    saveUninitialized: false,
+    secret: "super-secret-key",
+  })
+);
 
 declare module "http" {
   interface IncomingMessage {
