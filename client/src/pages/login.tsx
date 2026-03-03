@@ -47,17 +47,9 @@ export default function Login() {
   const onSubmit = async (values: LoginRequest) => {
     try {
       await loginMutation.mutateAsync(values);
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully signed in.",
-      });
       setLocation("/dashboard");
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Authentication Failed",
-        description: error instanceof Error ? error.message : "Invalid credentials",
-      });
+      // Error is handled in the UI now
     }
   };
 
@@ -85,16 +77,30 @@ export default function Login() {
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
 
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-center text-foreground font-display mb-2">
-            Sign in to your account
+          <h1 className="text-3xl font-bold text-center text-slate-900 font-display mb-2">
+            Welcome Back
           </h1>
-          <p className="text-center text-muted-foreground text-sm">
-            Enter your details below to continue
+          <p className="text-center text-slate-500 text-sm">
+            Sign in to access your account
           </p>
         </div>
 
+        {/* Error Message UI */}
+        {loginMutation.isError && (
+          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="mt-0.5">
+              <svg className="w-5 h-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <p className="text-sm text-red-800 leading-tight">
+              Invalid {currentRole} credentials. Please check your email and password.
+            </p>
+          </div>
+        )}
+
         {/* Custom Segmented Control for Employee / Client */}
-        <div className="flex p-1 bg-slate-100 rounded-lg mb-8 relative">
+        <div className="flex p-1 bg-slate-50 border border-slate-200 rounded-lg mb-8 relative">
           <button
             type="button"
             onClick={() => form.setValue("role", "employee")}
@@ -126,11 +132,11 @@ export default function Login() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-foreground/80">Email Address</FormLabel>
+                  <FormLabel className="text-slate-600 font-medium">Email Address</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="name@company.com" 
-                      className="h-11 rounded-lg bg-slate-50/50 border-slate-200 focus-visible:ring-primary/20 focus-visible:border-primary transition-all"
+                      placeholder="Enter your email" 
+                      className="h-12 rounded-lg bg-white border-slate-200 focus-visible:ring-primary/20 focus-visible:border-primary transition-all"
                       {...field} 
                     />
                   </FormControl>
@@ -144,13 +150,13 @@ export default function Login() {
               name="password"
               render={({ field }) => (
                 <FormItem className="space-y-1">
-                  <FormLabel className="text-foreground/80">Password</FormLabel>
+                  <FormLabel className="text-slate-600 font-medium">Password</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
                         type={showPassword ? "text" : "password"}
-                        placeholder="••••••••"
-                        className="h-11 rounded-lg bg-slate-50/50 border-slate-200 focus-visible:ring-primary/20 focus-visible:border-primary transition-all pr-10"
+                        placeholder="Enter your password"
+                        className="h-12 rounded-lg bg-white border-slate-200 focus-visible:ring-primary/20 focus-visible:border-primary transition-all pr-10"
                         {...field}
                       />
                       <button
@@ -182,7 +188,7 @@ export default function Login() {
 
             <Button 
               type="submit" 
-              className="w-full h-11 bg-[#3b82f6] hover:bg-[#2563eb] text-white rounded-lg font-semibold shadow-md shadow-blue-500/20 transition-all active:scale-[0.98] mt-2"
+              className="w-full h-12 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-lg font-semibold shadow-md shadow-blue-500/10 transition-all active:scale-[0.98] mt-2"
               disabled={loginMutation.isPending}
             >
               {loginMutation.isPending ? "Signing in..." : "Sign In"}
@@ -199,7 +205,7 @@ export default function Login() {
         <Button 
           type="button" 
           variant="outline" 
-          className="w-full h-11 mt-6 rounded-lg font-medium border-slate-200 hover:bg-slate-50 text-slate-700 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+          className="w-full h-12 mt-6 rounded-lg font-medium border-slate-200 hover:bg-slate-50 text-slate-700 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
           onClick={handleMicrosoftLogin}
         >
           <svg className="w-5 h-5" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
