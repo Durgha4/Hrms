@@ -62,17 +62,45 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 bg-background">
-      {/* Centered Logo */}
-      <div className="mb-8 flex justify-center">
-        <div className="w-14 h-14 bg-yellow-400 rounded-xl flex items-center justify-center shadow-lg shadow-yellow-400/20">
-          <X className="w-8 h-8 text-white stroke-[3]" />
-        </div>
-      </div>
-
       {/* Main Card */}
       <div className="w-full max-w-[420px] bg-card rounded-2xl p-6 sm:p-8 shadow-xl shadow-black/[0.02] border border-border/60 relative overflow-hidden">
         {/* Subtle top gradient line */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+
+        {/* Logo */}
+        <div className="flex justify-center mb-8">
+          <img
+            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKVW_LlI3J3jD3Iet9soKQKB4Kbyk7qZINPw&s"
+            alt="Logo"
+            className="w-[80px] h-auto object-contain"
+          />
+        </div>
+
+        {/* Employee / Client Toggle */}
+        <div className="flex p-1 bg-slate-50 border border-slate-200 rounded-lg mb-8 relative">
+          <button
+            type="button"
+            onClick={() => form.setValue("role", "employee")}
+            className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all duration-200 z-10 ${
+              currentRole === "employee"
+                ? "bg-slate-800 text-white shadow-md"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            Employee
+          </button>
+          <button
+            type="button"
+            onClick={() => form.setValue("role", "client")}
+            className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all duration-200 z-10 ${
+              currentRole === "client"
+                ? "bg-slate-800 text-white shadow-md"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            Client
+          </button>
+        </div>
 
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-slate-900 font-display mb-2">
@@ -104,32 +132,6 @@ export default function Login() {
             </p>
           </div>
         )}
-
-        {/* Employee / Client Toggle */}
-        <div className="flex p-1 bg-slate-50 border border-slate-200 rounded-lg mb-8 relative">
-          <button
-            type="button"
-            onClick={() => form.setValue("role", "employee")}
-            className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all duration-200 z-10 ${
-              currentRole === "employee"
-                ? "bg-slate-800 text-white shadow-md"
-                : "text-slate-500 hover:text-slate-700"
-            }`}
-          >
-            Employee
-          </button>
-          <button
-            type="button"
-            onClick={() => form.setValue("role", "client")}
-            className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all duration-200 z-10 ${
-              currentRole === "client"
-                ? "bg-slate-800 text-white shadow-md"
-                : "text-slate-500 hover:text-slate-700"
-            }`}
-          >
-            Client
-          </button>
-        </div>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
@@ -226,18 +228,18 @@ export default function Login() {
           </svg>
           Sign in with Microsoft
         </Button>
-      </div>
 
-      <div className="mt-8 text-center">
-        <p className="text-sm text-slate-500">
-          Need help?{" "}
-          <a
-            href="#"
-            className="font-medium text-slate-700 hover:text-primary transition-colors underline decoration-slate-300 underline-offset-4"
-          >
-            Contact your account manager
-          </a>
-        </p>
+        <div className="mt-8 text-center">
+          <p className="text-sm text-slate-500">
+            Need help?{" "}
+            <a
+              href="#"
+              className="font-medium text-slate-700 hover:text-primary transition-colors underline decoration-slate-300 underline-offset-4"
+            >
+              Contact your account manager
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   );
