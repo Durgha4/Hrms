@@ -21,10 +21,10 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  
+
   // Check if already logged in
   const { data: user, isLoading: isLoadingUser } = useMe();
-  
+
   const loginMutation = useLogin();
 
   const form = useForm<LoginRequest>({
@@ -61,8 +61,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
-      
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 bg-background">
       {/* Centered Logo */}
       <div className="mb-8 flex justify-center">
         <div className="w-14 h-14 bg-yellow-400 rounded-xl flex items-center justify-center shadow-lg shadow-yellow-400/20">
@@ -72,25 +71,32 @@ export default function Login() {
 
       {/* Main Card */}
       <div className="w-full max-w-[420px] bg-card rounded-2xl p-6 sm:p-8 shadow-xl shadow-black/[0.02] border border-border/60 relative overflow-hidden">
-        
-        {/* Subtle top gradient line for extra polish */}
+        {/* Subtle top gradient line */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
 
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-center text-slate-900 font-display mb-2">
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-slate-900 font-display mb-2">
             Welcome Back
           </h1>
-          <p className="text-center text-slate-500 text-sm">
+          <p className="text-slate-500 text-sm">
             Sign in to access your account
           </p>
         </div>
 
-        {/* Error Message UI */}
+        {/* Error Message */}
         {loginMutation.isError && (
           <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
             <div className="mt-0.5">
-              <svg className="w-5 h-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              <svg
+                className="w-5 h-5 text-red-500"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
             <p className="text-sm text-red-800 leading-tight">
@@ -99,7 +105,7 @@ export default function Login() {
           </div>
         )}
 
-        {/* Custom Segmented Control for Employee / Client */}
+        {/* Employee / Client Toggle */}
         <div className="flex p-1 bg-slate-50 border border-slate-200 rounded-lg mb-8 relative">
           <button
             type="button"
@@ -134,10 +140,10 @@ export default function Login() {
                 <FormItem>
                   <FormLabel className="text-slate-600 font-medium">Email Address</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Enter your email" 
+                    <Input
+                      placeholder="Enter your email"
                       className="h-12 rounded-lg bg-white border-slate-200 focus-visible:ring-primary/20 focus-visible:border-primary transition-all"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -156,7 +162,7 @@ export default function Login() {
                       <Input
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
-                        className="h-12 rounded-lg bg-white border-slate-200 focus-visible:ring-primary/20 focus-visible:border-primary transition-all pr-10"
+                        className="h-12 rounded-lg bg-white border-slate-200 pr-10 focus-visible:ring-primary/20 focus-visible:border-primary transition-all"
                         {...field}
                       />
                       <button
@@ -172,11 +178,13 @@ export default function Login() {
                       </button>
                     </div>
                   </FormControl>
-                  
-                  {/* Forgot Password Link - Only for Client */}
+
                   {currentRole === "client" && (
                     <div className="flex justify-end pt-1">
-                      <a href="#" className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
+                      <a
+                        href="#"
+                        className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                      >
                         Forgot your password?
                       </a>
                     </div>
@@ -186,8 +194,8 @@ export default function Login() {
               )}
             />
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full h-12 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-lg font-semibold shadow-md shadow-blue-500/10 transition-all active:scale-[0.98] mt-2"
               disabled={loginMutation.isPending}
             >
@@ -198,33 +206,39 @@ export default function Login() {
 
         <div className="mt-8 flex items-center justify-center space-x-4">
           <div className="h-px flex-1 bg-border/80"></div>
-          <span className="text-xs text-muted-foreground uppercase font-medium tracking-wider">Or continue with</span>
+          <span className="text-xs text-muted-foreground uppercase font-medium tracking-wider">
+            Or continue with
+          </span>
           <div className="h-px flex-1 bg-border/80"></div>
         </div>
 
-        <Button 
-          type="button" 
-          variant="outline" 
+        <Button
+          type="button"
+          variant="outline"
           className="w-full h-12 mt-6 rounded-lg font-medium border-slate-200 hover:bg-slate-50 text-slate-700 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
           onClick={handleMicrosoftLogin}
         >
-          <svg className="w-5 h-5" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 0H0V10H10V0Z" fill="#F25022"/>
-            <path d="M21 0H11V10H21V0Z" fill="#7FBA00"/>
-            <path d="M10 11H0V21H10V11Z" fill="#00A4EF"/>
-            <path d="M21 11H11V21H21V11Z" fill="#FFB900"/>
+          <svg className="w-5 h-5" viewBox="0 0 21 21">
+            <path d="M10 0H0V10H10V0Z" fill="#F25022" />
+            <path d="M21 0H11V10H21V0Z" fill="#7FBA00" />
+            <path d="M10 11H0V21H10V11Z" fill="#00A4EF" />
+            <path d="M21 11H11V21H21V11Z" fill="#FFB900" />
           </svg>
           Sign in with Microsoft
         </Button>
       </div>
 
-      {/* Footer Help Text */}
       <div className="mt-8 text-center">
         <p className="text-sm text-slate-500">
-          Need help? <a href="#" className="font-medium text-slate-700 hover:text-primary transition-colors underline decoration-slate-300 underline-offset-4">Contact your account manager</a>
+          Need help?{" "}
+          <a
+            href="#"
+            className="font-medium text-slate-700 hover:text-primary transition-colors underline decoration-slate-300 underline-offset-4"
+          >
+            Contact your account manager
+          </a>
         </p>
       </div>
-      
     </div>
   );
 }
