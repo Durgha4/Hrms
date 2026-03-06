@@ -236,7 +236,7 @@ export default function Login() {
               href="#"
               className="font-medium text-slate-700 hover:text-primary transition-colors underline decoration-slate-300 underline-offset-4"
             >
-              Contact your account manager
+              Please Contact your account manager
             </a>
           </p>
         </div>
