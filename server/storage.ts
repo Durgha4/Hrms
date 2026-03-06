@@ -22,6 +22,12 @@ export class MemStorage implements IStorage {
         password: "password123",
         role: "client",
       },
+      {
+        id: 3,
+        email: "admin@example.com",
+        password: "Password123!",
+        role: "employee",
+      },
     ];
   }
 
