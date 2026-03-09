@@ -1,0 +1,204 @@
+ROLE
+You are a **Senior Frontend Engineer and UI Refactor Specialist**.
+
+OBJECTIVE
+Refactor the existing **HRMS dashboard UI** to match the provided screenshot.
+
+IMPORTANT
+This is **UI refactoring only**.
+
+Do NOT modify:
+
+* authentication
+* routing
+* backend APIs
+* existing functionality
+
+Only update **dashboard layout and styling**.
+
+---
+
+CURRENT SYSTEM
+
+The HRMS system already has:
+
+* Login
+* Navbar
+* Sidebar navigation
+* Dashboard page
+* Profile module
+
+Modify **only the dashboard UI**.
+
+---
+
+TARGET DASHBOARD
+
+### HEADER
+
+Heading:
+
+**Welcome back, Employee!**
+
+Style:
+
+* Large bold heading
+* "Employee" highlighted **blue**
+
+Subtitle:
+
+Manage your account and access your resources.
+
+Spacing:
+
+margin-top: 30px
+
+---
+
+### SIGN OUT BUTTON
+
+Position: **top-right of header**
+
+Text:
+
+Sign Out
+
+Style:
+
+* outline button
+* border-radius: 8px
+* icon on left
+
+---
+
+### DASHBOARD CARDS
+
+Below header create **3 cards in a grid**
+
+Grid:
+
+3 columns
+gap: 24px
+
+Cards:
+
+1. Overview
+2. Profile Details
+3. Account Settings
+
+Each card includes:
+
+icon
+title
+description
+action link
+
+---
+
+### CARD CONTENT
+
+**Overview**
+
+Description:
+View daily summaries, pending tasks, and recent activities.
+
+Action:
+Go to Overview →
+
+---
+
+**Profile Details**
+
+Description:
+Update personal information and preferences.
+
+Action:
+Manage Profile →
+
+---
+
+**Account Settings**
+
+Description:
+Configure security, notifications, and system preferences.
+
+Action:
+Open Settings →
+
+---
+
+### CARD STYLE
+
+background: white
+border-radius: 16px
+padding: 24px
+soft shadow
+
+Hover: slight lift effect.
+
+---
+
+### ICON STYLE
+
+Icons inside rounded square:
+
+48px × 48px
+light gray background
+border-radius: 12px
+
+---
+
+### PAGE BACKGROUND
+
+```
+#F5F7FA
+```
+
+---
+
+### RESPONSIVE GRID
+
+Desktop → 3 columns
+Tablet → 2 columns
+Mobile → 1 column
+
+---
+
+### TECH
+
+Use:
+
+React
+TailwindCSS
+
+Component structure:
+
+components/
+DashboardHeader.jsx
+DashboardCard.jsx
+
+pages/
+Dashboard.jsx
+
+---
+
+### OUTPUT
+
+Return:
+
+1. Updated **Dashboard.jsx**
+2. **DashboardCard component**
+3. Tailwind styling
+
+---
+
+CONSTRAINT
+
+Do NOT change:
+
+* Profile page
+* Sidebar
+* Login page
+* APIs
+
+Only refactor the **dashboard UI**.
