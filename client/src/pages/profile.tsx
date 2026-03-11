@@ -1,7 +1,8 @@
 import { useMe, useLogout } from "@/hooks/use-auth";
 import { useLocation, Redirect } from "wouter";
-import { LogOut, ArrowLeft, Mail, Phone, AlertCircle, User as UserIcon, Bell } from "lucide-react";
+import { LogOut, Mail, Phone, AlertCircle, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import DashboardLayout from "@/components/DashboardLayout";
 
 export default function Profile() {
   const { data: user, isLoading } = useMe();
@@ -34,47 +35,8 @@ export default function Profile() {
   const fullName = `${firstName} ${lastName}`.trim();
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#F5F7FA" }}>
-      {/* Top Navigation */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm shadow-slate-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setLocation("/dashboard")}
-                className="text-slate-600 hover:text-slate-900"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-yellow-400 rounded-md flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">X</span>
-                </div>
-                <span className="font-display font-bold text-lg text-slate-800 hidden sm:block">Profile</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" className="text-slate-500 hover:text-slate-700 rounded-full">
-                <Bell className="w-5 h-5" />
-              </Button>
-              <div className="h-8 w-px bg-slate-200 mx-1"></div>
-              <div className="flex items-center gap-3">
-                <div className="text-right hidden md:block">
-                  <p className="text-sm font-medium text-slate-700 leading-none">{user.email}</p>
-                  <p className="text-xs text-slate-500 mt-1 capitalize">{user.role}</p>
-                </div>
-                <div className="w-9 h-9 bg-primary/10 text-primary rounded-full flex items-center justify-center shadow-inner">
-                  <UserIcon className="w-4 h-4" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <DashboardLayout title="Profile">
+      <div className="max-w-7xl">
         {/* Profile Header */}
         <div className="flex justify-between items-start mb-8">
           <div>
@@ -181,7 +143,7 @@ export default function Profile() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
