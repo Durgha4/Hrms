@@ -47,7 +47,7 @@ export default function Login() {
   const onSubmit = async (values: LoginRequest) => {
     try {
       await loginMutation.mutateAsync(values);
-      setLocation("/dashboard");
+      setLocation("/profile");
     } catch (error) {
       // Error is handled in the UI now
     }
