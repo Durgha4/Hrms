@@ -18,7 +18,7 @@ app.use(
     }),
     resave: false,
     saveUninitialized: false,
-    secret: "super-secret-key",
+    secret: process.env.SESSION_SECRET || "fallback-dev-secret",
   })
 );
 
