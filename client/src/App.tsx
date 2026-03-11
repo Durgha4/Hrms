@@ -8,12 +8,14 @@ import NotFound from "@/pages/not-found";
 // Pages
 import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
+import Profile from "@/pages/profile";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Login} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/profile" component={Profile} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>
