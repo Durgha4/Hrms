@@ -1,6 +1,6 @@
 import { useMe, useLogout } from "@/hooks/use-auth";
 import { useLocation, Redirect } from "wouter";
-import { LogOut, LayoutDashboard, User as UserIcon, Settings, Bell, ChevronRight } from "lucide-react";
+import { LogOut, LayoutDashboard, User as UserIcon, Settings, Bell, ChevronRight, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Dashboard() {
@@ -99,7 +99,7 @@ export default function Dashboard() {
           </div>
 
           {/* Profile Details Card */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 group cursor-pointer" style={{ borderRadius: "16px", padding: "24px" }}>
+          <div onClick={() => setLocation("/profile")} className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 group cursor-pointer" style={{ borderRadius: "16px", padding: "24px" }}>
             <div className="w-12 h-12 bg-gray-100 text-purple-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform" style={{ borderRadius: "12px", width: "48px", height: "48px" }}>
               <UserIcon className="w-6 h-6" />
             </div>

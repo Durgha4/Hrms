@@ -13,6 +13,12 @@ export const userSchema = z.object({
   email: z.string(),
   password: z.string(),
   role: z.enum(["employee", "client"]),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  dateOfJoining: z.string().optional(),
+  phone: z.string().optional(),
+  emergencyContact: z.string().optional(),
+  profileImage: z.string().optional(),
 });
 
 export type User = z.infer<typeof userSchema>;
