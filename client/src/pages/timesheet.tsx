@@ -144,7 +144,7 @@ const statusLegend = [
   { color: "#22c55e", label: "Approved" },
   { color: "#f59e0b", label: "Submitted (Pending)" },
   { color: "#ef4444", label: "Rejected" },
-  { color: "#3b82f6", label: "Saved (Draft)" },
+  { color: "#3b82f6", label: "Draft" },
 ];
 
 /* ── Main Component ─────────────────────────────────────── */
@@ -484,10 +484,10 @@ export default function Timesheet() {
                   onClick={handleSave}
                   disabled={isLocked}
                   className="text-white disabled:opacity-50"
-                  style={{ backgroundColor: isSaved ? "#16a34a" : "#475569" }}
+                  style={{ backgroundColor: isSaved ? "#3b82f6" : "#475569" }}
                   data-testid="button-save"
                 >
-                  {isSaved ? <><CheckCircle className="w-4 h-4 mr-1" /> Saved</> : "Save"}
+                  {isSaved ? <><CheckCircle className="w-4 h-4 mr-1" /> Draft</> : "Draft"}
                 </Button>
 
                 <Button
@@ -533,10 +533,6 @@ export default function Timesheet() {
 
           {/* Calendar Card */}
           <div className="bg-white rounded-xl shadow-sm" style={{ padding: "20px" }}>
-            <div className="flex items-center gap-2 mb-4">
-              <Calendar className="w-4 h-4" style={{ color: HEADER_COLOR }} />
-              <h3 className="text-sm font-bold text-slate-800">Calendar</h3>
-            </div>
             <MiniCalendar
               referenceDate={currentWeek}
               weekStatuses={weekStatuses}
