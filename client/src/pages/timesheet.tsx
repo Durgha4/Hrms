@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMe } from "@/hooks/use-auth";
 import { Redirect } from "wouter";
-import { ChevronLeft, ChevronRight, Calendar, X, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/DashboardLayout";
 
@@ -69,6 +69,12 @@ export default function Timesheet() {
     return `${startStr} - ${endStr}`;
   };
 
+  const formatColumnHeaderDate = (date: Date) => {
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]}`;
+  };
+
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   };
@@ -121,19 +127,6 @@ export default function Timesheet() {
     return days;
   };
 
-  const getDateStatus = (date: number) => {
-    const approvedDates = [4, 5, 6, 7, 8];
-    const submittedDates = [11, 12, 13];
-    const rejectedDates = [18, 19, 20];
-    const draftDates = [25, 26, 27, 28];
-
-    if (approvedDates.includes(date)) return "approved";
-    if (submittedDates.includes(date)) return "submitted";
-    if (rejectedDates.includes(date)) return "rejected";
-    if (draftDates.includes(date)) return "draft";
-    return "none";
-  };
-
   const calendarDays = getCalendarDays();
 
   const calculateTotalHours = () => {
@@ -181,10 +174,6 @@ export default function Timesheet() {
     });
   };
 
-  const handleDeleteProject = (id: string) => {
-    setProjects(projects.filter(p => p.id !== id));
-  };
-
   const handleHourChange = (day: keyof typeof formHours, value: string) => {
     setFormHours({
       ...formHours,
@@ -206,6 +195,14 @@ export default function Timesheet() {
       sunday: 0,
     });
   };
+
+  const weekDayDates = [startDate, endDate].map(d => d);
+  const dayDates: Date[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(startDate);
+    d.setDate(d.getDate() + i);
+    dayDates.push(d);
+  }
 
   return (
     <DashboardLayout title="Timesheet">
@@ -261,31 +258,23 @@ export default function Timesheet() {
               <div className="bg-white rounded-lg shadow-sm overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-slate-200">
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900">Project</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-slate-900">Mon</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-slate-900">Tue</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-slate-900">Wed</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-slate-900">Thu</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-slate-900">Fri</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-slate-900">Sat</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-slate-900">Sun</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-slate-900">Total</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-slate-900">Action</th>
+                    <tr className="bg-teal-700">
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Project Name</th>
+                      {dayDates.map((date, idx) => (
+                        <th key={idx} className="px-4 py-4 text-center text-sm font-semibold text-white whitespace-nowrap">
+                          {formatColumnHeaderDate(date)}
+                        </th>
+                      ))}
+                      <th className="px-4 py-4 text-center text-sm font-semibold text-white">Total</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {projects.map((project) => {
+                    {projects.map((project, idx) => {
                       const projectTotal = project.hours.monday + project.hours.tuesday + project.hours.wednesday + 
                                           project.hours.thursday + project.hours.friday + project.hours.saturday + project.hours.sunday;
                       return (
-                        <tr key={project.id} className="border-b border-slate-200 hover:bg-slate-50">
-                          <td className="px-6 py-4 text-sm text-slate-900">
-                            <div>
-                              <p className="font-semibold">{project.name}</p>
-                              <p className="text-xs text-slate-500">{project.client}</p>
-                            </div>
-                          </td>
+                        <tr key={project.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                          <td className="px-6 py-4 text-sm text-slate-900 font-medium">{project.name}</td>
                           <td className="px-4 py-4 text-center text-sm text-slate-900">{project.hours.monday}</td>
                           <td className="px-4 py-4 text-center text-sm text-slate-900">{project.hours.tuesday}</td>
                           <td className="px-4 py-4 text-center text-sm text-slate-900">{project.hours.wednesday}</td>
@@ -294,14 +283,6 @@ export default function Timesheet() {
                           <td className="px-4 py-4 text-center text-sm text-slate-900">{project.hours.saturday}</td>
                           <td className="px-4 py-4 text-center text-sm text-slate-900">{project.hours.sunday}</td>
                           <td className="px-4 py-4 text-center text-sm font-semibold text-slate-900">{projectTotal}</td>
-                          <td className="px-4 py-4 text-center">
-                            <button
-                              onClick={() => handleDeleteProject(project.id)}
-                              className="p-1 text-red-600 hover:bg-red-50 rounded"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </td>
                         </tr>
                       );
                     })}
@@ -331,17 +312,10 @@ export default function Timesheet() {
                 <div className="grid grid-cols-7 gap-2">
                   {Array.from({ length: 31 }).map((_, i) => {
                     const date = i + 1;
-                    let bgColor = "bg-white hover:bg-slate-50";
-
-                    if ([4, 5, 6, 7, 8].includes(date)) bgColor = "bg-green-100";
-                    if ([11, 12, 13].includes(date)) bgColor = "bg-yellow-100";
-                    if ([18, 19, 20].includes(date)) bgColor = "bg-red-100";
-                    if ([25, 26, 27, 28].includes(date)) bgColor = "bg-blue-100";
-
                     return (
                       <div
                         key={date}
-                        className={`h-8 flex items-center justify-center text-xs font-medium rounded ${bgColor} text-slate-900 cursor-pointer`}
+                        className="h-8 flex items-center justify-center text-xs font-medium rounded bg-white border border-slate-200 text-slate-900 cursor-pointer hover:bg-slate-50"
                       >
                         {date}
                       </div>
@@ -349,38 +323,15 @@ export default function Timesheet() {
                   })}
                 </div>
               </div>
-
-              {/* Status Legend */}
-              <div className="border-t pt-4 space-y-2">
-                <h4 className="text-xs font-semibold text-slate-600 uppercase">Status</h4>
-                <div className="space-y-2 text-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-400 rounded"></div>
-                    <span className="text-slate-600">Approved</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-yellow-400 rounded"></div>
-                    <span className="text-slate-600">Submitted</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-red-400 rounded"></div>
-                    <span className="text-slate-600">Rejected</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-blue-400 rounded"></div>
-                    <span className="text-slate-600">Draft</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
 
         {/* Bottom Section - Total Hours */}
-        <div className="mt-6 bg-white rounded-lg p-4 shadow-sm">
+        <div className="mt-6 bg-slate-400 rounded-lg p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-8">
-              <span className="font-semibold text-slate-900">Total Hours</span>
+              <span className="font-semibold text-white">Total Hours</span>
               <div className="flex gap-6">
                 {[
                   { label: "Mon", key: "monday" as const },
@@ -392,8 +343,7 @@ export default function Timesheet() {
                   { label: "Sun", key: "sunday" as const },
                 ].map(day => (
                   <div key={day.label} className="text-center">
-                    <p className="text-xs text-slate-600 font-medium">{day.label}</p>
-                    <p className="text-sm font-semibold text-slate-900">{calculateDayTotal(day.key)}h</p>
+                    <p className="text-sm font-semibold text-white">{calculateDayTotal(day.key)}</p>
                   </div>
                 ))}
               </div>
@@ -401,12 +351,11 @@ export default function Timesheet() {
 
             <div className="flex gap-3">
               <Button
-                variant="outline"
-                className="border-slate-300 text-slate-700 hover:bg-white hover:border-slate-400"
+                className="bg-slate-500 text-white hover:bg-slate-600"
               >
                 Save
               </Button>
-              <Button className="bg-primary text-white hover:bg-primary/90">
+              <Button className="bg-teal-700 text-white hover:bg-teal-800">
                 Submit Timesheet
               </Button>
             </div>
@@ -454,49 +403,15 @@ export default function Timesheet() {
                       return <div key={`empty-${idx}`} className="h-10"></div>;
                     }
 
-                    const status = getDateStatus(date);
-                    let bgColor = "bg-white hover:bg-slate-50 border border-slate-200";
-                    let textColor = "text-slate-900 font-semibold";
-
-                    if (status === "approved") {
-                      bgColor = "bg-green-100 border border-green-300";
-                    } else if (status === "submitted") {
-                      bgColor = "bg-yellow-100 border border-yellow-300";
-                    } else if (status === "rejected") {
-                      bgColor = "bg-red-100 border border-red-300";
-                    } else if (status === "draft") {
-                      bgColor = "bg-blue-100 border border-blue-300";
-                    }
-
                     return (
                       <div
                         key={date}
-                        className={`h-10 flex items-center justify-center text-sm rounded cursor-pointer ${bgColor} ${textColor}`}
+                        className="h-10 flex items-center justify-center text-sm rounded cursor-pointer bg-white border border-slate-200 text-slate-900 font-semibold hover:bg-slate-50"
                       >
                         {date}
                       </div>
                     );
                   })}
-                </div>
-              </div>
-
-              {/* Status Legend */}
-              <div className="border-t pt-4 grid grid-cols-4 gap-4 mb-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-green-400 rounded"></div>
-                  <span className="text-sm text-slate-600">Approved (7)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-yellow-400 rounded"></div>
-                  <span className="text-sm text-slate-600">Submitted (14)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-red-400 rounded"></div>
-                  <span className="text-sm text-slate-600">Rejected (0)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-blue-400 rounded"></div>
-                  <span className="text-sm text-slate-600">Draft (0)</span>
                 </div>
               </div>
 
