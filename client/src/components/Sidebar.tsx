@@ -14,7 +14,7 @@ export default function Sidebar() {
   const [location] = useLocation();
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-20 bg-slate-50 border-r border-slate-200 pt-16 flex flex-col items-center">
+    <aside className="fixed left-0 top-0 h-screen w-24 bg-slate-50 border-r border-slate-200 pt-16 flex flex-col items-center">
       <nav className="flex-1 flex flex-col items-center py-8 space-y-4">
         {modules.map((module) => {
           const Icon = module.icon;
@@ -25,7 +25,7 @@ export default function Sidebar() {
               key={module.name}
               href={module.path}
               className={cn(
-                "p-3 rounded-lg transition-colors duration-200",
+                "flex flex-col items-center gap-1 p-2 rounded-lg transition-colors duration-200 w-full",
                 isActive
                   ? "bg-white text-primary shadow-sm border border-slate-200"
                   : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
@@ -33,6 +33,9 @@ export default function Sidebar() {
               title={module.name}
             >
               <Icon className="w-6 h-6 flex-shrink-0" />
+              <span className="text-xs font-semibold text-center text-slate-600 leading-tight">
+                {module.name}
+              </span>
             </a>
           );
         })}
