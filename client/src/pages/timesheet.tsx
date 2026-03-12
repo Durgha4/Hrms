@@ -135,6 +135,7 @@ export default function Timesheet() {
   const [selectedProject, setSelectedProject] = useState("Select project");
   const [projects, setProjects] = useState<Project[]>([]);
   const [timesheetStatus, setTimesheetStatus] = useState<TimesheetStatus>("draft");
+  const [hourLimitHit, setHourLimitHit] = useState(false);
   const calendarBtnRef = useRef<HTMLButtonElement>(null);
   const calendarPopupRef = useRef<HTMLDivElement>(null);
 
@@ -196,6 +197,7 @@ export default function Timesheet() {
     setCurrentWeek(d);
     setTimesheetStatus("draft");
     setProjects([]);
+    setHourLimitHit(false);
   };
 
   const getAvailableProjects = () =>
@@ -225,8 +227,10 @@ export default function Timesheet() {
   const handleHourChange = (projectId: string, day: keyof Project["hours"], value: string) => {
     if (timesheetStatus === "submitted") return;
     const numValue = parseInt(value, 10) || 0;
+    const clamped = Math.min(12, Math.max(0, numValue));
+    if (numValue > 12) setHourLimitHit(true);
     setProjects(projects.map(p =>
-      p.id === projectId ? { ...p, hours: { ...p.hours, [day]: Math.max(0, numValue) } } : p
+      p.id === projectId ? { ...p, hours: { ...p.hours, [day]: clamped } } : p
     ));
     if (timesheetStatus === "saved") setTimesheetStatus("draft");
   };
@@ -389,11 +393,12 @@ export default function Timesheet() {
                                     type="number"
                                     inputMode="numeric"
                                     min={0}
-                                    max={24}
+                                    max={12}
                                     step={1}
                                     value={project.hours[day] === 0 ? "" : project.hours[day]}
                                     placeholder="0"
                                     onChange={e => handleHourChange(project.id, day, e.target.value)}
+                                    onBlur={e => handleHourChange(project.id, day, e.target.value)}
                                     className="w-14 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                                     data-testid={`input-hours-${project.id}-${day}`}
                                   />
@@ -426,6 +431,16 @@ export default function Timesheet() {
                 </div>
               )}
             </div>
+
+            {/* Validation Warning */}
+            {hourLimitHit && projects.length > 0 && !isSubmitted && (
+              <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm" data-testid="text-hour-limit-warning">
+                <svg className="w-4 h-4 flex-shrink-0 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                </svg>
+                Maximum 12 hours allowed per day.
+              </div>
+            )}
 
             {/* Save / Submit Bar */}
             {projects.length > 0 && (
