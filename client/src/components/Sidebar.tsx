@@ -14,8 +14,8 @@ export default function Sidebar() {
   const [location] = useLocation();
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-56 bg-slate-50 border-r border-slate-200 pt-16 flex flex-col">
-      <nav className="flex-1 px-4 py-8 space-y-2">
+    <aside className="fixed left-0 top-0 h-screen w-20 bg-slate-50 border-r border-slate-200 pt-16 flex flex-col items-center">
+      <nav className="flex-1 flex flex-col items-center py-8 space-y-4">
         {modules.map((module) => {
           const Icon = module.icon;
           const isActive = location === module.path;
@@ -25,14 +25,14 @@ export default function Sidebar() {
               key={module.name}
               href={module.path}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200",
+                "p-3 rounded-lg transition-colors duration-200",
                 isActive
                   ? "bg-white text-primary shadow-sm border border-slate-200"
                   : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
               )}
+              title={module.name}
             >
-              <Icon className="w-5 h-5 flex-shrink-0" />
-              <span className="font-medium text-sm">{module.name}</span>
+              <Icon className="w-6 h-6 flex-shrink-0" />
             </a>
           );
         })}

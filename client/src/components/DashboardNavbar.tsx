@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useMe, useLogout } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
-import { Bell, LogOut } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
 
 interface DashboardNavbarProps {
   title?: string;
@@ -13,11 +12,6 @@ export default function DashboardNavbar({ title = "Profile" }: DashboardNavbarPr
   const logoutMutation = useLogout();
   const [, setLocation] = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-
-  const getInitials = (email?: string) => {
-    if (!email) return "U";
-    return email.split("@")[0].slice(0, 2).toUpperCase();
-  };
 
   const handleLogout = async () => {
     try {
@@ -41,35 +35,21 @@ export default function DashboardNavbar({ title = "Profile" }: DashboardNavbarPr
           <h1 className="text-white font-bold text-lg">{title}</h1>
         </div>
 
-        {/* Right Side - Notifications & Avatar */}
-        <div className="flex items-center gap-4 relative">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white hover:bg-blue-700 rounded-full"
-          >
-            <Bell className="w-5 h-5" />
-          </Button>
-
-          <div className="h-6 w-px bg-blue-700" />
-
+        {/* Right Side - Avatar */}
+        <div className="relative">
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className="w-9 h-9 bg-white text-[#0F3D57] rounded-full flex items-center justify-center font-semibold text-sm hover:shadow-md transition-shadow"
           >
-            {getInitials(user?.email)}
+            DS
           </button>
 
           {/* Profile Dropdown */}
           {dropdownOpen && (
-            <div className="absolute right-0 top-14 w-48 bg-white rounded-lg shadow-lg z-50 py-2">
-              <div className="px-4 py-3 border-b border-gray-200">
-                <p className="text-sm text-gray-700">
-                  <strong>Role:</strong>
-                </p>
-                <p className="text-sm font-semibold text-gray-900 capitalize">
-                  {user?.role || "User"}
-                </p>
+            <div className="absolute right-0 top-14 w-56 bg-white rounded-lg shadow-lg z-50 py-2">
+              <div className="px-4 py-4 border-b border-gray-200">
+                <p className="text-sm font-semibold text-gray-900">Durgha S</p>
+                <p className="text-sm text-gray-600 mt-1">AI Developer</p>
               </div>
               <button
                 onClick={() => {

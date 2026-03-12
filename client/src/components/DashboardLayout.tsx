@@ -14,7 +14,7 @@ export default function DashboardLayout({ children, title = "Profile" }: Dashboa
       <Sidebar />
 
       {/* Main Content Area */}
-      <main className="ml-56 mt-16">
+      <main className="ml-20 mt-16">
         <div className="p-8">
           {children}
         </div>
