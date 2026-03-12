@@ -40,8 +40,9 @@ function MiniCalendar({
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
   const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-  const dayLabels = ["Su","Mo","Tu","We","Th","Fr","Sa"];
-  const firstDayOfMonth = new Date(year, month, 1).getDay();
+  const dayLabels = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  const rawFirstDay = new Date(year, month, 1).getDay();
+  const firstDayOfMonth = rawFirstDay === 0 ? 6 : rawFirstDay - 1;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const today = new Date();
 
