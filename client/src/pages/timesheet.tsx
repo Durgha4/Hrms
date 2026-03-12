@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMe } from "@/hooks/use-auth";
 import { Redirect } from "wouter";
-import { ChevronLeft, ChevronRight, Calendar, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, X, CheckCircle, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/DashboardLayout";
 
@@ -20,26 +20,31 @@ interface Project {
   };
 }
 
+type TimesheetStatus = "draft" | "saved" | "submitted";
+
 const clientData = {
   "NovintiX": ["AI - Internal", "Internal"],
 };
 
-/* ── Mini Calendar ─────────────────────────────────────── */
-function MiniCalendar({ referenceDate }: { referenceDate: Date }) {
-  const [viewDate, setViewDate] = useState(new Date(referenceDate));
+const HEADER_COLOR = "#0F3D57";
 
+/* ── Mini Calendar ─────────────────────────────────────── */
+function MiniCalendar({
+  referenceDate,
+  onSelectDate,
+}: {
+  referenceDate: Date;
+  onSelectDate?: (d: Date) => void;
+}) {
+  const [viewDate, setViewDate] = useState(new Date(referenceDate));
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
-
   const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   const dayLabels = ["Su","Mo","Tu","We","Th","Fr","Sa"];
-
   const firstDayOfMonth = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-
   const today = new Date();
 
-  /* Get the Mon–Sun range of the reference week */
   const getWeekRange = (d: Date) => {
     const copy = new Date(d);
     const day = copy.getDay();
@@ -55,10 +60,8 @@ function MiniCalendar({ referenceDate }: { referenceDate: Date }) {
     const d = new Date(year, month, day);
     return d >= weekMon && d <= weekSun;
   };
-
-  const isToday = (day: number) => {
-    return today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
-  };
+  const isToday = (day: number) =>
+    today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
 
   const cells: (number | null)[] = [
     ...Array(firstDayOfMonth).fill(null),
@@ -67,39 +70,41 @@ function MiniCalendar({ referenceDate }: { referenceDate: Date }) {
 
   return (
     <div>
-      {/* Month navigation */}
       <div className="flex items-center justify-between mb-3">
-        <button onClick={() => { const d = new Date(viewDate); d.setMonth(d.getMonth() - 1); setViewDate(d); }} className="p-1 hover:bg-slate-100 rounded-lg">
+        <button
+          onClick={() => { const d = new Date(viewDate); d.setMonth(d.getMonth() - 1); setViewDate(d); }}
+          className="p-1 hover:bg-slate-100 rounded-lg"
+        >
           <ChevronLeft className="w-4 h-4 text-slate-500" />
         </button>
         <span className="text-xs font-bold text-slate-700">{monthNames[month]} {year}</span>
-        <button onClick={() => { const d = new Date(viewDate); d.setMonth(d.getMonth() + 1); setViewDate(d); }} className="p-1 hover:bg-slate-100 rounded-lg">
+        <button
+          onClick={() => { const d = new Date(viewDate); d.setMonth(d.getMonth() + 1); setViewDate(d); }}
+          className="p-1 hover:bg-slate-100 rounded-lg"
+        >
           <ChevronRight className="w-4 h-4 text-slate-500" />
         </button>
       </div>
-
-      {/* Day labels */}
       <div className="grid grid-cols-7 mb-1">
         {dayLabels.map(l => (
           <div key={l} className="text-center text-xs font-semibold text-slate-400 py-1">{l}</div>
         ))}
       </div>
-
-      {/* Date cells */}
       <div className="grid grid-cols-7 gap-y-0.5">
         {cells.map((day, idx) => (
           <div key={idx} className="flex items-center justify-center h-7">
             {day !== null && (
               <span
+                onClick={() => onSelectDate && onSelectDate(new Date(year, month, day))}
                 className={[
                   "w-7 h-7 flex items-center justify-center rounded-full text-xs font-medium transition-colors",
+                  onSelectDate ? "cursor-pointer" : "",
                   isInCurrentWeek(day)
-                    ? "bg-blue-100 text-blue-700 font-semibold"
+                    ? "text-white font-semibold"
                     : "text-slate-600 hover:bg-slate-100",
-                  isToday(day)
-                    ? "ring-2 ring-blue-500 ring-offset-1"
-                    : "",
+                  isToday(day) && !isInCurrentWeek(day) ? "ring-2 ring-blue-400 ring-offset-1" : "",
                 ].join(" ")}
+                style={isInCurrentWeek(day) ? { backgroundColor: HEADER_COLOR } : {}}
               >
                 {day}
               </span>
@@ -125,18 +130,37 @@ export default function Timesheet() {
   const { data: user, isLoading } = useMe();
   const [currentWeek, setCurrentWeek] = useState(new Date(2026, 2, 16));
   const [showAddProjectModal, setShowAddProjectModal] = useState(false);
+  const [showCalendarPopup, setShowCalendarPopup] = useState(false);
   const [selectedClient, setSelectedClient] = useState("Select client");
   const [selectedProject, setSelectedProject] = useState("Select project");
   const [projects, setProjects] = useState<Project[]>([]);
+  const [timesheetStatus, setTimesheetStatus] = useState<TimesheetStatus>("draft");
+  const calendarBtnRef = useRef<HTMLButtonElement>(null);
+  const calendarPopupRef = useRef<HTMLDivElement>(null);
+
+  /* Close calendar popup on outside click */
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (
+        calendarPopupRef.current &&
+        !calendarPopupRef.current.contains(e.target as Node) &&
+        calendarBtnRef.current &&
+        !calendarBtnRef.current.contains(e.target as Node)
+      ) {
+        setShowCalendarPopup(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
       </div>
     );
   }
-
   if (!user) return <Redirect to="/" />;
 
   const getWeekDates = (date: Date) => {
@@ -166,10 +190,16 @@ export default function Timesheet() {
   const { startDate, endDate } = getWeekDates(currentWeek);
   const dateRange = formatDateRange(startDate, endDate);
 
-  const handlePrevWeek = () => { const d = new Date(currentWeek); d.setDate(d.getDate() - 7); setCurrentWeek(d); };
-  const handleNextWeek = () => { const d = new Date(currentWeek); d.setDate(d.getDate() + 7); setCurrentWeek(d); };
+  const navigateWeek = (dir: "prev" | "next") => {
+    const d = new Date(currentWeek);
+    d.setDate(d.getDate() + (dir === "prev" ? -7 : 7));
+    setCurrentWeek(d);
+    setTimesheetStatus("draft");
+    setProjects([]);
+  };
 
-  const getAvailableProjects = () => selectedClient === "Select client" ? [] : clientData[selectedClient as keyof typeof clientData] || [];
+  const getAvailableProjects = () =>
+    selectedClient === "Select client" ? [] : clientData[selectedClient as keyof typeof clientData] || [];
 
   const calculateProjectTotal = (p: Project) => Object.values(p.hours).reduce((s, h) => s + h, 0);
   const calculateDayTotal = (day: keyof Project["hours"]) => projects.reduce((s, p) => s + p.hours[day], 0);
@@ -186,16 +216,28 @@ export default function Timesheet() {
       client: selectedClient,
       hours: { monday: 0, tuesday: 0, wednesday: 0, thursday: 0, friday: 0, saturday: 0, sunday: 0 },
     }]);
+    setTimesheetStatus("draft");
     setShowAddProjectModal(false);
     setSelectedClient("Select client");
     setSelectedProject("Select project");
   };
 
   const handleHourChange = (projectId: string, day: keyof Project["hours"], value: string) => {
-    const numValue = parseFloat(value) || 0;
+    if (timesheetStatus === "submitted") return;
+    const numValue = parseInt(value, 10) || 0;
     setProjects(projects.map(p =>
       p.id === projectId ? { ...p, hours: { ...p.hours, [day]: Math.max(0, numValue) } } : p
     ));
+    if (timesheetStatus === "saved") setTimesheetStatus("draft");
+  };
+
+  const handleSave = () => {
+    setTimesheetStatus("saved");
+  };
+
+  const handleSubmit = () => {
+    if (timesheetStatus === "submitted") return;
+    setTimesheetStatus("submitted");
   };
 
   const dayDates: Date[] = [];
@@ -211,6 +253,9 @@ export default function Timesheet() {
     setSelectedProject("Select project");
   };
 
+  const isSubmitted = timesheetStatus === "submitted";
+  const isSaved = timesheetStatus === "saved";
+
   return (
     <DashboardLayout title="Timesheet">
 
@@ -224,23 +269,72 @@ export default function Timesheet() {
             {/* Top Navigation */}
             <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
               <div className="flex items-center gap-3">
-                <button onClick={handlePrevWeek} className="p-2 hover:bg-white rounded-lg border border-transparent hover:border-slate-200 transition-all" data-testid="button-prev-week">
+                <button
+                  onClick={() => navigateWeek("prev")}
+                  className="p-2 hover:bg-white rounded-lg border border-transparent hover:border-slate-200 transition-all"
+                  data-testid="button-prev-week"
+                >
                   <ChevronLeft className="w-5 h-5 text-slate-600" />
                 </button>
-                <span className="text-sm font-semibold text-slate-900 min-w-max" data-testid="text-week-range">{dateRange}</span>
-                <button onClick={handleNextWeek} className="p-2 hover:bg-white rounded-lg border border-transparent hover:border-slate-200 transition-all" data-testid="button-next-week">
+                <span className="text-sm font-semibold text-slate-900 min-w-max" data-testid="text-week-range">
+                  {dateRange}
+                </span>
+                <button
+                  onClick={() => navigateWeek("next")}
+                  className="p-2 hover:bg-white rounded-lg border border-transparent hover:border-slate-200 transition-all"
+                  data-testid="button-next-week"
+                >
                   <ChevronRight className="w-5 h-5 text-slate-600" />
                 </button>
-                <button className="p-2 hover:bg-white rounded-lg border border-transparent hover:border-slate-200 transition-all ml-1" data-testid="button-calendar">
-                  <Calendar className="w-5 h-5 text-slate-600" />
-                </button>
+
+                {/* Calendar icon — popup toggle */}
+                <div className="relative ml-1">
+                  <button
+                    ref={calendarBtnRef}
+                    onClick={() => setShowCalendarPopup(v => !v)}
+                    className="p-2 hover:bg-white rounded-lg border border-transparent hover:border-slate-200 transition-all"
+                    data-testid="button-calendar"
+                  >
+                    <Calendar className="w-5 h-5 text-slate-600" />
+                  </button>
+                  {showCalendarPopup && (
+                    <div
+                      ref={calendarPopupRef}
+                      className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-200 z-50"
+                      style={{ padding: "16px", width: "260px" }}
+                    >
+                      <MiniCalendar
+                        referenceDate={currentWeek}
+                        onSelectDate={(d) => {
+                          setCurrentWeek(d);
+                          setTimesheetStatus("draft");
+                          setProjects([]);
+                          setShowCalendarPopup(false);
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Status badge */}
+                {isSubmitted && (
+                  <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-200">
+                    <Lock className="w-3 h-3" /> Submitted
+                  </span>
+                )}
+                {isSaved && !isSubmitted && (
+                  <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-200">
+                    <CheckCircle className="w-3 h-3" /> Saved
+                  </span>
+                )}
               </div>
+
               <button
-                onClick={() => setShowAddProjectModal(true)}
-                className="text-white px-4 py-2 rounded-lg text-sm font-semibold"
-                style={{ backgroundColor: "#0F3D57" }}
-                onMouseOver={e => (e.currentTarget.style.backgroundColor = "#0C3348")}
-                onMouseOut={e => (e.currentTarget.style.backgroundColor = "#0F3D57")}
+                onClick={() => !isSubmitted && setShowAddProjectModal(true)}
+                className="text-white px-4 py-2 rounded-lg text-sm font-semibold transition-opacity"
+                style={{ backgroundColor: HEADER_COLOR, opacity: isSubmitted ? 0.5 : 1, cursor: isSubmitted ? "not-allowed" : "pointer" }}
+                onMouseOver={e => { if (!isSubmitted) e.currentTarget.style.backgroundColor = "#0C3348"; }}
+                onMouseOut={e => { e.currentTarget.style.backgroundColor = HEADER_COLOR; }}
                 data-testid="button-add-project"
               >
                 + Add Project
@@ -259,8 +353,10 @@ export default function Timesheet() {
                 <div className="rounded-lg overflow-x-auto border border-slate-200">
                   <table className="w-full">
                     <thead>
-                      <tr className="bg-teal-700">
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-white sticky left-0 z-10 bg-teal-700">Project Name</th>
+                      <tr style={{ backgroundColor: HEADER_COLOR }}>
+                        <th className="px-6 py-4 text-left text-sm font-semibold text-white sticky left-0 z-10" style={{ backgroundColor: HEADER_COLOR }}>
+                          Project Name
+                        </th>
                         {dayDates.map((date, idx) => (
                           <th key={idx} className="px-4 py-4 text-center text-sm font-semibold text-white whitespace-nowrap min-w-20">
                             {formatColumnHeaderDate(date)}
@@ -274,21 +370,31 @@ export default function Timesheet() {
                         const projectTotal = calculateProjectTotal(project);
                         return (
                           <tr key={project.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50"} data-testid={`row-project-${project.id}`}>
-                            <td className="px-6 py-4 text-sm text-slate-900 font-medium sticky left-0 z-10 bg-inherit">{project.name}</td>
+                            <td className="px-6 py-4 text-sm text-slate-900 font-medium sticky left-0 z-10 bg-inherit">
+                              {project.name}
+                            </td>
                             {(["monday","tuesday","wednesday","thursday","friday","saturday","sunday"] as (keyof Project["hours"])[]).map(day => (
                               <td key={day} className="px-4 py-4 text-center">
-                                <input
-                                  type="text"
-                                  inputMode="decimal"
-                                  value={project.hours[day]}
-                                  onChange={e => handleHourChange(project.id, day, e.target.value)}
-                                  className="w-16 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                                  data-testid={`input-hours-${project.id}-${day}`}
-                                />
+                                {isSubmitted ? (
+                                  <span className="inline-block w-16 px-2 py-1 bg-slate-100 rounded text-center text-sm text-slate-600 font-medium">
+                                    {project.hours[day]}
+                                  </span>
+                                ) : (
+                                  <input
+                                    type="number"
+                                    inputMode="numeric"
+                                    min={0}
+                                    step={1}
+                                    value={project.hours[day]}
+                                    onChange={e => handleHourChange(project.id, day, e.target.value)}
+                                    className="w-16 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                    data-testid={`input-hours-${project.id}-${day}`}
+                                  />
+                                )}
                               </td>
                             ))}
                             <td className="px-4 py-4 text-center text-sm font-semibold text-slate-900" data-testid={`text-total-${project.id}`}>
-                              {projectTotal.toFixed(1)}
+                              {projectTotal}
                             </td>
                           </tr>
                         );
@@ -317,7 +423,7 @@ export default function Timesheet() {
                       ]).map(day => (
                         <div key={day.label} className="text-center min-w-16">
                           <p className="text-sm font-semibold text-white" data-testid={`text-total-${day.label}`}>
-                            {calculateDayTotal(day.key).toFixed(1)}
+                            {calculateDayTotal(day.key)}
                           </p>
                         </div>
                       ))}
@@ -325,10 +431,30 @@ export default function Timesheet() {
                   </div>
                   <div className="flex items-center gap-3 ml-8">
                     <span className="text-sm font-semibold text-white mr-2" data-testid="text-grand-total">
-                      Total: {calculateGrandTotal().toFixed(1)}h
+                      Total: {calculateGrandTotal()}h
                     </span>
-                    <Button className="bg-slate-500 text-white hover:bg-slate-600" data-testid="button-save">Save</Button>
-                    <Button className="bg-teal-700 text-white hover:bg-teal-800" data-testid="button-submit">Submit Timesheet</Button>
+
+                    {/* Save Button */}
+                    <Button
+                      onClick={handleSave}
+                      disabled={isSubmitted}
+                      className="text-white disabled:opacity-50"
+                      style={{ backgroundColor: isSaved ? "#16a34a" : "#475569" }}
+                      data-testid="button-save"
+                    >
+                      {isSaved ? <><CheckCircle className="w-4 h-4 mr-1" /> Saved</> : "Save"}
+                    </Button>
+
+                    {/* Submit Button */}
+                    <Button
+                      onClick={handleSubmit}
+                      disabled={isSubmitted}
+                      className="text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                      style={{ backgroundColor: isSubmitted ? "#64748b" : HEADER_COLOR }}
+                      data-testid="button-submit"
+                    >
+                      {isSubmitted ? <><Lock className="w-4 h-4 mr-1" /> Submitted</> : "Submit Timesheet"}
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -343,10 +469,17 @@ export default function Timesheet() {
           {/* Calendar Card */}
           <div className="bg-white rounded-xl shadow-sm" style={{ padding: "20px" }}>
             <div className="flex items-center gap-2 mb-4">
-              <Calendar className="w-4 h-4 text-blue-600" />
+              <Calendar className="w-4 h-4" style={{ color: HEADER_COLOR }} />
               <h3 className="text-sm font-bold text-slate-800">Calendar</h3>
             </div>
-            <MiniCalendar referenceDate={currentWeek} />
+            <MiniCalendar
+              referenceDate={currentWeek}
+              onSelectDate={(d) => {
+                setCurrentWeek(d);
+                setTimesheetStatus("draft");
+                setProjects([]);
+              }}
+            />
           </div>
 
           {/* Status Legend Card */}
@@ -403,8 +536,12 @@ export default function Timesheet() {
                 </select>
               </div>
               <div className="flex gap-3 mt-6">
-                <Button variant="outline" onClick={handleResetModal} className="flex-1 border-slate-300 text-slate-700" data-testid="button-cancel">Cancel</Button>
-                <Button onClick={handleAddProject} className="flex-1 bg-primary text-white hover:bg-primary/90" data-testid="button-add-confirm">Add</Button>
+                <Button variant="outline" onClick={handleResetModal} className="flex-1 border-slate-300 text-slate-700" data-testid="button-cancel">
+                  Cancel
+                </Button>
+                <Button onClick={handleAddProject} className="flex-1 bg-primary text-white hover:bg-primary/90" data-testid="button-add-confirm">
+                  Add
+                </Button>
               </div>
             </div>
           </div>
