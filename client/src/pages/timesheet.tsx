@@ -23,6 +23,8 @@ interface Project {
 // Mock data for clients and projects
 const clientData = {
   "NovintiX": ["AI - Internal", "Internal"],
+  "Acme Corp": ["Web Design", "Mobile App"],
+  "Tech Solutions": ["Consulting", "Development"],
 };
 
 export default function Timesheet() {
@@ -156,39 +158,39 @@ export default function Timesheet() {
     <DashboardLayout title="Timesheet">
       <div className="h-full flex flex-col">
         {/* Top Navigation */}
-        <div className="flex items-center justify-between mb-6 bg-slate-900 rounded-lg p-4 shadow-sm">
+        <div className="flex items-center justify-between mb-6 bg-white rounded-lg p-4 shadow-sm">
           <div className="flex items-center gap-4">
             <button
               onClick={handlePrevWeek}
-              className="p-2 hover:bg-slate-800 rounded-lg"
+              className="p-2 hover:bg-slate-100 rounded-lg"
               data-testid="button-prev-week"
             >
-              <ChevronLeft className="w-5 h-5 text-white" />
+              <ChevronLeft className="w-5 h-5 text-slate-600" />
             </button>
 
-            <span className="text-sm font-semibold text-white min-w-max" data-testid="text-week-range">
+            <span className="text-sm font-semibold text-slate-900 min-w-max" data-testid="text-week-range">
               {dateRange}
             </span>
 
             <button
               onClick={handleNextWeek}
-              className="p-2 hover:bg-slate-800 rounded-lg"
+              className="p-2 hover:bg-slate-100 rounded-lg"
               data-testid="button-next-week"
             >
-              <ChevronRight className="w-5 h-5 text-white" />
+              <ChevronRight className="w-5 h-5 text-slate-600" />
             </button>
 
             <button 
-              className="p-2 hover:bg-slate-800 rounded-lg ml-2"
+              className="p-2 hover:bg-slate-100 rounded-lg ml-2"
               data-testid="button-calendar"
             >
-              <Calendar className="w-5 h-5 text-white" />
+              <Calendar className="w-5 h-5 text-slate-600" />
             </button>
           </div>
 
           <button 
             onClick={() => setShowAddProjectModal(true)}
-            className="bg-slate-900 border border-white text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-800"
+            className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90"
             data-testid="button-add-project"
           >
             + Add Project
