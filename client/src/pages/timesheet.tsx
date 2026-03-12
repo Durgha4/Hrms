@@ -23,8 +23,6 @@ interface Project {
 // Mock data for clients and projects
 const clientData = {
   "NovintiX": ["AI - Internal", "Internal"],
-  "Acme Corp": ["Web Design", "Mobile App"],
-  "Tech Solutions": ["Consulting", "Development"],
 };
 
 export default function Timesheet() {
