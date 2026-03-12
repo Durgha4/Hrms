@@ -76,19 +76,21 @@ function MiniCalendar({
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const today = new Date();
 
-  const getDayColor = (day: number): string | null => {
+  const getDayInfo = (day: number): { color: string | null; isLeave: boolean; isHoliday: boolean } => {
     const d = new Date(year, month, day);
     for (const hr of holidayDates) {
       const hd = parseHolidayDate(hr, year);
-      if (hd.getDate() === day && hd.getMonth() === month) return "#f97316";
+      if (hd.getDate() === day && hd.getMonth() === month)
+        return { color: "#f97316", isLeave: false, isHoliday: true };
     }
     for (const lr of leaveDates) {
       const s = parseDate(lr.start);
       const e = parseDate(lr.end);
       s.setHours(0,0,0,0); e.setHours(23,59,59,999);
-      if (d >= s && d <= e) return STATUS_STYLES[lr.status]?.dot ?? null;
+      if (d >= s && d <= e)
+        return { color: "#f97316", isLeave: true, isHoliday: false };
     }
-    return null;
+    return { color: null, isLeave: false, isHoliday: false };
   };
 
   const isToday = (day: number) =>
@@ -125,23 +127,25 @@ function MiniCalendar({
 
       <div className="grid grid-cols-7 gap-y-0.5">
         {cells.map((day, idx) => {
-          const color = day !== null ? getDayColor(day) : null;
+          const { color, isLeave } = day !== null ? getDayInfo(day) : { color: null, isLeave: false, isHoliday: false };
           const col = idx % 7;
           const isWeekend = col === 5 || col === 6;
           return (
             <div
               key={idx}
               className="flex items-center justify-center h-7 rounded-sm"
-              style={isWeekend && day !== null ? { backgroundColor: "#EBEBF0" } : {}}
+              style={isWeekend && day !== null && !color ? { backgroundColor: "#EBEBF0" } : {}}
             >
               {day !== null && (
                 <span
                   className={[
-                    "w-7 h-7 flex items-center justify-center rounded-full text-xs font-medium",
-                    color ? "text-white font-semibold" : isWeekend ? "text-slate-400" : "text-slate-600",
+                    "w-7 h-7 flex items-center justify-center rounded-full text-xs font-medium transition-colors",
+                    color ? "text-white font-bold" : isWeekend ? "text-slate-400" : "text-slate-600",
                     isToday(day) && !color ? "ring-2 ring-blue-400 ring-offset-1" : "",
+                    isLeave ? "ring-2 ring-orange-300 ring-offset-1" : "",
                   ].join(" ")}
                   style={color ? { backgroundColor: color } : {}}
+                  title={isLeave ? "Leave applied" : undefined}
                 >
                   {day}
                 </span>
@@ -435,12 +439,20 @@ export default function LeaveRequest() {
 
           {/* Status Legend */}
           <div className="bg-white rounded-xl shadow-sm p-4">
-            <h3 className="text-sm font-bold text-slate-800 mb-3">Status Legend</h3>
+            <h3 className="text-sm font-bold text-slate-800 mb-3">Legend</h3>
             <div className="space-y-2.5">
+              <div className="flex items-center gap-3">
+                <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: "#f97316" }} />
+                <span className="text-xs text-slate-600">Leave Applied</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: "#f97316" }} />
+                <span className="text-xs text-slate-600">Public Holiday</span>
+              </div>
               {(["Approved","Pending","Rejected"] as const).map(s => (
                 <div key={s} className="flex items-center gap-3">
                   <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: STATUS_STYLES[s].dot }} />
-                  <span className="text-xs text-slate-600">{s}</span>
+                  <span className="text-xs text-slate-600">{s} (Table)</span>
                 </div>
               ))}
             </div>
