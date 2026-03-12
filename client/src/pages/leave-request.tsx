@@ -439,20 +439,12 @@ export default function LeaveRequest() {
 
           {/* Status Legend */}
           <div className="bg-white rounded-xl shadow-sm p-4">
-            <h3 className="text-sm font-bold text-slate-800 mb-3">Legend</h3>
+            <h3 className="text-sm font-bold text-slate-800 mb-3">Status Legend</h3>
             <div className="space-y-2.5">
-              <div className="flex items-center gap-3">
-                <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: "#f97316" }} />
-                <span className="text-xs text-slate-600">Leave Applied</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: "#f97316" }} />
-                <span className="text-xs text-slate-600">Public Holiday</span>
-              </div>
               {(["Approved","Pending","Rejected"] as const).map(s => (
                 <div key={s} className="flex items-center gap-3">
                   <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: STATUS_STYLES[s].dot }} />
-                  <span className="text-xs text-slate-600">{s} (Table)</span>
+                  <span className="text-xs text-slate-600">{s}</span>
                 </div>
               ))}
             </div>
