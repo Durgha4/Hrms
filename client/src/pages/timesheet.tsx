@@ -351,18 +351,23 @@ export default function Timesheet() {
                 </div>
               ) : (
                 <div className="rounded-lg overflow-x-auto border border-slate-200">
-                  <table className="w-full">
+                  <table className="w-full table-fixed">
+                    <colgroup>
+                      <col style={{ width: "180px" }} />
+                      {dayDates.map((_, i) => <col key={i} style={{ width: "88px" }} />)}
+                      <col style={{ width: "72px" }} />
+                    </colgroup>
                     <thead>
                       <tr style={{ backgroundColor: HEADER_COLOR }}>
                         <th className="px-6 py-4 text-left text-sm font-semibold text-white sticky left-0 z-10" style={{ backgroundColor: HEADER_COLOR }}>
                           Project Name
                         </th>
                         {dayDates.map((date, idx) => (
-                          <th key={idx} className="px-4 py-4 text-center text-sm font-semibold text-white whitespace-nowrap min-w-20">
+                          <th key={idx} className="px-4 py-4 text-center text-sm font-semibold text-white whitespace-nowrap">
                             {formatColumnHeaderDate(date)}
                           </th>
                         ))}
-                        <th className="px-4 py-4 text-center text-sm font-semibold text-white min-w-20">Total</th>
+                        <th className="px-4 py-4 text-center text-sm font-semibold text-white">Total</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -370,13 +375,13 @@ export default function Timesheet() {
                         const projectTotal = calculateProjectTotal(project);
                         return (
                           <tr key={project.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50"} data-testid={`row-project-${project.id}`}>
-                            <td className="px-6 py-4 text-sm text-slate-900 font-medium sticky left-0 z-10 bg-inherit">
+                            <td className="px-6 py-4 text-sm text-slate-900 font-medium sticky left-0 z-10 bg-inherit truncate">
                               {project.name}
                             </td>
                             {(["monday","tuesday","wednesday","thursday","friday","saturday","sunday"] as (keyof Project["hours"])[]).map(day => (
-                              <td key={day} className="px-4 py-4 text-center">
+                              <td key={day} className="px-4 py-3 text-center">
                                 {isSubmitted ? (
-                                  <span className="inline-block w-16 px-2 py-1 bg-slate-100 rounded text-center text-sm text-slate-600 font-medium">
+                                  <span className="inline-block w-14 px-2 py-1 bg-slate-100 rounded text-center text-sm text-slate-600 font-medium">
                                     {project.hours[day]}
                                   </span>
                                 ) : (
@@ -384,79 +389,70 @@ export default function Timesheet() {
                                     type="number"
                                     inputMode="numeric"
                                     min={0}
+                                    max={24}
                                     step={1}
-                                    value={project.hours[day]}
+                                    value={project.hours[day] === 0 ? "" : project.hours[day]}
+                                    placeholder="0"
                                     onChange={e => handleHourChange(project.id, day, e.target.value)}
-                                    className="w-16 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                    className="w-14 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                                     data-testid={`input-hours-${project.id}-${day}`}
                                   />
                                 )}
                               </td>
                             ))}
-                            <td className="px-4 py-4 text-center text-sm font-semibold text-slate-900" data-testid={`text-total-${project.id}`}>
+                            <td className="px-4 py-3 text-center text-sm font-semibold text-slate-900" data-testid={`text-total-${project.id}`}>
                               {projectTotal}
                             </td>
                           </tr>
                         );
                       })}
                     </tbody>
+                    <tfoot>
+                      <tr style={{ backgroundColor: "#475569" }}>
+                        <td className="px-6 py-3 text-sm font-bold text-white sticky left-0 z-10" style={{ backgroundColor: "#475569" }}>
+                          Total Hours
+                        </td>
+                        {(["monday","tuesday","wednesday","thursday","friday","saturday","sunday"] as (keyof Project["hours"])[]).map(day => (
+                          <td key={day} className="px-4 py-3 text-center text-sm font-bold text-white" data-testid={`text-total-${day}`}>
+                            {calculateDayTotal(day)}
+                          </td>
+                        ))}
+                        <td className="px-4 py-3 text-center text-sm font-bold text-white" data-testid="text-grand-total">
+                          {calculateGrandTotal()}
+                        </td>
+                      </tr>
+                    </tfoot>
                   </table>
                 </div>
               )}
             </div>
 
-            {/* Total Hours Bar */}
+            {/* Save / Submit Bar */}
             {projects.length > 0 && (
-              <div className="bg-slate-400 rounded-lg px-5 py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-8 flex-1">
-                    <span className="font-semibold text-white min-w-max">Total Hours</span>
-                    <div className="flex gap-6">
-                      {([
-                        { label: "Mon", key: "monday" as const },
-                        { label: "Tue", key: "tuesday" as const },
-                        { label: "Wed", key: "wednesday" as const },
-                        { label: "Thu", key: "thursday" as const },
-                        { label: "Fri", key: "friday" as const },
-                        { label: "Sat", key: "saturday" as const },
-                        { label: "Sun", key: "sunday" as const },
-                      ]).map(day => (
-                        <div key={day.label} className="text-center min-w-16">
-                          <p className="text-sm font-semibold text-white" data-testid={`text-total-${day.label}`}>
-                            {calculateDayTotal(day.key)}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 ml-8">
-                    <span className="text-sm font-semibold text-white mr-2" data-testid="text-grand-total">
-                      Total: {calculateGrandTotal()}h
-                    </span>
+              <div className="flex items-center justify-end gap-3">
+                <span className="text-sm font-semibold text-slate-600 mr-2" data-testid="text-grand-total">
+                  Total: {calculateGrandTotal()}h
+                </span>
 
-                    {/* Save Button */}
-                    <Button
-                      onClick={handleSave}
-                      disabled={isSubmitted}
-                      className="text-white disabled:opacity-50"
-                      style={{ backgroundColor: isSaved ? "#16a34a" : "#475569" }}
-                      data-testid="button-save"
-                    >
-                      {isSaved ? <><CheckCircle className="w-4 h-4 mr-1" /> Saved</> : "Save"}
-                    </Button>
+                <Button
+                  onClick={handleSave}
+                  disabled={isSubmitted}
+                  className="text-white disabled:opacity-50"
+                  style={{ backgroundColor: isSaved ? "#16a34a" : "#475569" }}
+                  data-testid="button-save"
+                >
+                  {isSaved ? <><CheckCircle className="w-4 h-4 mr-1" /> Saved</> : "Save"}
+                </Button>
 
-                    {/* Submit Button */}
-                    <Button
-                      onClick={handleSubmit}
-                      disabled={isSubmitted}
-                      className="text-white disabled:opacity-60 disabled:cursor-not-allowed"
-                      style={{ backgroundColor: isSubmitted ? "#64748b" : HEADER_COLOR }}
-                      data-testid="button-submit"
-                    >
-                      {isSubmitted ? <><Lock className="w-4 h-4 mr-1" /> Submitted</> : "Submit Timesheet"}
-                    </Button>
-                  </div>
-                </div>
+                <Button
+                  onClick={handleSubmit}
+                  disabled={isSubmitted}
+                  className="text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: isSubmitted ? "#64748b" : HEADER_COLOR }}
+                  data-testid="button-submit"
+                >
+                  {isSubmitted ? <><Lock className="w-4 h-4 mr-1" /> Submitted</> : "Submit Timesheet"}
+                </Button>
               </div>
             )}
 
