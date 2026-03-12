@@ -1,9 +1,24 @@
 import { useState } from "react";
 import { useMe } from "@/hooks/use-auth";
 import { Redirect } from "wouter";
-import { ChevronLeft, ChevronRight, Calendar, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/DashboardLayout";
+
+interface Project {
+  id: string;
+  name: string;
+  client: string;
+  hours: {
+    monday: number;
+    tuesday: number;
+    wednesday: number;
+    thursday: number;
+    friday: number;
+    saturday: number;
+    sunday: number;
+  };
+}
 
 export default function Timesheet() {
   const { data: user, isLoading } = useMe();
@@ -13,6 +28,16 @@ export default function Timesheet() {
   const [selectedClient, setSelectedClient] = useState("Select client");
   const [selectedProject, setSelectedProject] = useState("Select project");
   const [calendarMonth, setCalendarMonth] = useState(new Date(2026, 2)); // March 2026
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [formHours, setFormHours] = useState({
+    monday: 0,
+    tuesday: 0,
+    wednesday: 0,
+    thursday: 0,
+    friday: 0,
+    saturday: 0,
+    sunday: 0,
+  });
 
   if (isLoading) {
     return (
@@ -85,12 +110,10 @@ export default function Timesheet() {
     const daysInMonth = getDaysInMonth(calendarMonth);
     const firstDay = getFirstDayOfMonth(calendarMonth);
 
-    // Add empty cells for days before the month starts
     for (let i = 0; i < firstDay; i++) {
       days.push(null);
     }
 
-    // Add days of the month
     for (let i = 1; i <= daysInMonth; i++) {
       days.push(i);
     }
@@ -112,6 +135,77 @@ export default function Timesheet() {
   };
 
   const calendarDays = getCalendarDays();
+
+  const calculateTotalHours = () => {
+    let total = 0;
+    projects.forEach(project => {
+      total += project.hours.monday + project.hours.tuesday + project.hours.wednesday + 
+               project.hours.thursday + project.hours.friday + project.hours.saturday + project.hours.sunday;
+    });
+    return total;
+  };
+
+  const calculateDayTotal = (day: keyof typeof formHours) => {
+    let total = 0;
+    projects.forEach(project => {
+      total += project.hours[day];
+    });
+    return total;
+  };
+
+  const handleAddProject = () => {
+    if (selectedProject === "Select project" || selectedClient === "Select client") {
+      alert("Please select both client and project");
+      return;
+    }
+
+    const newProject: Project = {
+      id: Date.now().toString(),
+      name: selectedProject,
+      client: selectedClient,
+      hours: { ...formHours },
+    };
+
+    setProjects([...projects, newProject]);
+    setShowAddProjectModal(false);
+    setSelectedClient("Select client");
+    setSelectedProject("Select project");
+    setFormHours({
+      monday: 0,
+      tuesday: 0,
+      wednesday: 0,
+      thursday: 0,
+      friday: 0,
+      saturday: 0,
+      sunday: 0,
+    });
+  };
+
+  const handleDeleteProject = (id: string) => {
+    setProjects(projects.filter(p => p.id !== id));
+  };
+
+  const handleHourChange = (day: keyof typeof formHours, value: string) => {
+    setFormHours({
+      ...formHours,
+      [day]: parseFloat(value) || 0,
+    });
+  };
+
+  const handleResetModal = () => {
+    setShowAddProjectModal(false);
+    setSelectedClient("Select client");
+    setSelectedProject("Select project");
+    setFormHours({
+      monday: 0,
+      tuesday: 0,
+      wednesday: 0,
+      thursday: 0,
+      friday: 0,
+      saturday: 0,
+      sunday: 0,
+    });
+  };
 
   return (
     <DashboardLayout title="Timesheet">
@@ -155,13 +249,66 @@ export default function Timesheet() {
 
         {/* Main Content Grid */}
         <div className="flex gap-6 flex-1">
-          {/* Center Panel */}
+          {/* Center Panel - Timesheet Table */}
           <div className="flex-1">
-            <div className="bg-white rounded-lg p-12 shadow-sm flex items-center justify-center min-h-96">
-              <p className="text-slate-500 text-center text-lg">
-                No time sheets found for this week range
-              </p>
-            </div>
+            {projects.length === 0 ? (
+              <div className="bg-white rounded-lg p-12 shadow-sm flex items-center justify-center min-h-96">
+                <p className="text-slate-500 text-center text-lg">
+                  No time sheets found for this week range
+                </p>
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow-sm overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-200">
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900">Project</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-slate-900">Mon</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-slate-900">Tue</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-slate-900">Wed</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-slate-900">Thu</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-slate-900">Fri</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-slate-900">Sat</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-slate-900">Sun</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-slate-900">Total</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-slate-900">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {projects.map((project) => {
+                      const projectTotal = project.hours.monday + project.hours.tuesday + project.hours.wednesday + 
+                                          project.hours.thursday + project.hours.friday + project.hours.saturday + project.hours.sunday;
+                      return (
+                        <tr key={project.id} className="border-b border-slate-200 hover:bg-slate-50">
+                          <td className="px-6 py-4 text-sm text-slate-900">
+                            <div>
+                              <p className="font-semibold">{project.name}</p>
+                              <p className="text-xs text-slate-500">{project.client}</p>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 text-center text-sm text-slate-900">{project.hours.monday}</td>
+                          <td className="px-4 py-4 text-center text-sm text-slate-900">{project.hours.tuesday}</td>
+                          <td className="px-4 py-4 text-center text-sm text-slate-900">{project.hours.wednesday}</td>
+                          <td className="px-4 py-4 text-center text-sm text-slate-900">{project.hours.thursday}</td>
+                          <td className="px-4 py-4 text-center text-sm text-slate-900">{project.hours.friday}</td>
+                          <td className="px-4 py-4 text-center text-sm text-slate-900">{project.hours.saturday}</td>
+                          <td className="px-4 py-4 text-center text-sm text-slate-900">{project.hours.sunday}</td>
+                          <td className="px-4 py-4 text-center text-sm font-semibold text-slate-900">{projectTotal}</td>
+                          <td className="px-4 py-4 text-center">
+                            <button
+                              onClick={() => handleDeleteProject(project.id)}
+                              className="p-1 text-red-600 hover:bg-red-50 rounded"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {/* Right Panel - Calendar */}
@@ -186,7 +333,6 @@ export default function Timesheet() {
                     const date = i + 1;
                     let bgColor = "bg-white hover:bg-slate-50";
 
-                    // Color indicators
                     if ([4, 5, 6, 7, 8].includes(date)) bgColor = "bg-green-100";
                     if ([11, 12, 13].includes(date)) bgColor = "bg-yellow-100";
                     if ([18, 19, 20].includes(date)) bgColor = "bg-red-100";
@@ -236,10 +382,18 @@ export default function Timesheet() {
             <div className="flex items-center gap-8">
               <span className="font-semibold text-slate-900">Total Hours</span>
               <div className="flex gap-6">
-                {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => (
-                  <div key={day} className="text-center">
-                    <p className="text-xs text-slate-600 font-medium">{day}</p>
-                    <p className="text-sm font-semibold text-slate-900">0h</p>
+                {[
+                  { label: "Mon", key: "monday" as const },
+                  { label: "Tue", key: "tuesday" as const },
+                  { label: "Wed", key: "wednesday" as const },
+                  { label: "Thu", key: "thursday" as const },
+                  { label: "Fri", key: "friday" as const },
+                  { label: "Sat", key: "saturday" as const },
+                  { label: "Sun", key: "sunday" as const },
+                ].map(day => (
+                  <div key={day.label} className="text-center">
+                    <p className="text-xs text-slate-600 font-medium">{day.label}</p>
+                    <p className="text-sm font-semibold text-slate-900">{calculateDayTotal(day.key)}h</p>
                   </div>
                 ))}
               </div>
@@ -259,7 +413,7 @@ export default function Timesheet() {
           </div>
         </div>
 
-        {/* Calendar Modal - Improved Format */}
+        {/* Calendar Modal */}
         {showCalendarModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 shadow-lg max-w-2xl w-full">
@@ -302,20 +456,16 @@ export default function Timesheet() {
 
                     const status = getDateStatus(date);
                     let bgColor = "bg-white hover:bg-slate-50 border border-slate-200";
-                    let textColor = "text-slate-900";
+                    let textColor = "text-slate-900 font-semibold";
 
                     if (status === "approved") {
                       bgColor = "bg-green-100 border border-green-300";
-                      textColor = "text-slate-900 font-semibold";
                     } else if (status === "submitted") {
                       bgColor = "bg-yellow-100 border border-yellow-300";
-                      textColor = "text-slate-900 font-semibold";
                     } else if (status === "rejected") {
                       bgColor = "bg-red-100 border border-red-300";
-                      textColor = "text-slate-900 font-semibold";
                     } else if (status === "draft") {
                       bgColor = "bg-blue-100 border border-blue-300";
-                      textColor = "text-slate-900 font-semibold";
                     }
 
                     return (
@@ -363,11 +513,11 @@ export default function Timesheet() {
         {/* Add Project Modal */}
         {showAddProjectModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-8 shadow-lg max-w-md w-full">
+            <div className="bg-white rounded-lg p-8 shadow-lg max-w-2xl w-full max-h-96 overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-bold text-slate-900">Add new project</h2>
                 <button
-                  onClick={() => setShowAddProjectModal(false)}
+                  onClick={handleResetModal}
                   className="p-1 hover:bg-slate-100 rounded"
                 >
                   <X className="w-5 h-5 text-slate-600" />
@@ -375,12 +525,12 @@ export default function Timesheet() {
               </div>
 
               <div className="space-y-4">
-                {/* Client Dropdown */}
-                <div>
-                  <label className="text-xs uppercase font-semibold text-slate-600 block mb-2">
-                    Client
-                  </label>
-                  <div className="relative">
+                {/* Client and Project Dropdowns */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs uppercase font-semibold text-slate-600 block mb-2">
+                      Client
+                    </label>
                     <select
                       value={selectedClient}
                       onChange={(e) => setSelectedClient(e.target.value)}
@@ -390,14 +540,11 @@ export default function Timesheet() {
                       <option value="NovintiX">NovintiX</option>
                     </select>
                   </div>
-                </div>
 
-                {/* Project Name Dropdown */}
-                <div>
-                  <label className="text-xs uppercase font-semibold text-slate-600 block mb-2">
-                    Project Name
-                  </label>
-                  <div className="relative">
+                  <div>
+                    <label className="text-xs uppercase font-semibold text-slate-600 block mb-2">
+                      Project Name
+                    </label>
                     <select
                       value={selectedProject}
                       onChange={(e) => setSelectedProject(e.target.value)}
@@ -410,25 +557,51 @@ export default function Timesheet() {
                   </div>
                 </div>
 
+                {/* Hours Input Fields */}
+                <div className="border-t pt-4">
+                  <label className="text-xs uppercase font-semibold text-slate-600 block mb-3">
+                    Hours per Day
+                  </label>
+                  <div className="grid grid-cols-7 gap-2">
+                    {[
+                      { label: "Mon", key: "monday" as const },
+                      { label: "Tue", key: "tuesday" as const },
+                      { label: "Wed", key: "wednesday" as const },
+                      { label: "Thu", key: "thursday" as const },
+                      { label: "Fri", key: "friday" as const },
+                      { label: "Sat", key: "saturday" as const },
+                      { label: "Sun", key: "sunday" as const },
+                    ].map(day => (
+                      <div key={day.label}>
+                        <label className="text-xs text-slate-600 block mb-1">{day.label}</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="24"
+                          step="0.5"
+                          value={formHours[day.key]}
+                          onChange={(e) => handleHourChange(day.key, e.target.value)}
+                          className="w-full px-2 py-1 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Buttons */}
                 <div className="flex gap-3 mt-6">
                   <Button
                     variant="outline"
-                    onClick={() => setShowAddProjectModal(false)}
+                    onClick={handleResetModal}
                     className="flex-1 border-slate-300 text-slate-700"
                   >
                     Cancel
                   </Button>
                   <Button
-                    onClick={() => {
-                      // Handle add project
-                      setShowAddProjectModal(false);
-                      setSelectedClient("Select client");
-                      setSelectedProject("Select project");
-                    }}
+                    onClick={handleAddProject}
                     className="flex-1 bg-primary text-white hover:bg-primary/90"
                   >
-                    Add
+                    Add Project
                   </Button>
                 </div>
               </div>
