@@ -20,24 +20,20 @@ interface Project {
   };
 }
 
+// Mock data for clients and projects
+const clientData = {
+  "NovintiX": ["AI - Internal", "Internal"],
+  "Acme Corp": ["Web Design", "Mobile App"],
+  "Tech Solutions": ["Consulting", "Development"],
+};
+
 export default function Timesheet() {
   const { data: user, isLoading } = useMe();
   const [currentWeek, setCurrentWeek] = useState(new Date(2026, 2, 16)); // Mar 16, 2026
-  const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [showAddProjectModal, setShowAddProjectModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState("Select client");
   const [selectedProject, setSelectedProject] = useState("Select project");
-  const [calendarMonth, setCalendarMonth] = useState(new Date(2026, 2)); // March 2026
   const [projects, setProjects] = useState<Project[]>([]);
-  const [formHours, setFormHours] = useState({
-    monday: 0,
-    tuesday: 0,
-    wednesday: 0,
-    thursday: 0,
-    friday: 0,
-    saturday: 0,
-    sunday: 0,
-  });
 
   if (isLoading) {
     return (
@@ -70,22 +66,9 @@ export default function Timesheet() {
   };
 
   const formatColumnHeaderDate = (date: Date) => {
-    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]}`;
-  };
-
-  const getDaysInMonth = (date: Date) => {
-    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-  };
-
-  const getFirstDayOfMonth = (date: Date) => {
-    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-  };
-
-  const formatMonthYear = (date: Date) => {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    return `${months[date.getMonth()]} ${date.getFullYear()}`;
   };
 
   const { startDate, endDate } = getWeekDates(currentWeek);
@@ -103,47 +86,23 @@ export default function Timesheet() {
     setCurrentWeek(nextDate);
   };
 
-  const handlePrevMonth = () => {
-    setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1));
-  };
-
-  const handleNextMonth = () => {
-    setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1));
-  };
-
-  const getCalendarDays = () => {
-    const days = [];
-    const daysInMonth = getDaysInMonth(calendarMonth);
-    const firstDay = getFirstDayOfMonth(calendarMonth);
-
-    for (let i = 0; i < firstDay; i++) {
-      days.push(null);
+  const getAvailableProjects = () => {
+    if (selectedClient === "Select client") {
+      return [];
     }
-
-    for (let i = 1; i <= daysInMonth; i++) {
-      days.push(i);
-    }
-
-    return days;
+    return clientData[selectedClient as keyof typeof clientData] || [];
   };
 
-  const calendarDays = getCalendarDays();
-
-  const calculateTotalHours = () => {
-    let total = 0;
-    projects.forEach(project => {
-      total += project.hours.monday + project.hours.tuesday + project.hours.wednesday + 
-               project.hours.thursday + project.hours.friday + project.hours.saturday + project.hours.sunday;
-    });
-    return total;
+  const calculateProjectTotal = (project: Project) => {
+    return Object.values(project.hours).reduce((sum, hours) => sum + hours, 0);
   };
 
-  const calculateDayTotal = (day: keyof typeof formHours) => {
-    let total = 0;
-    projects.forEach(project => {
-      total += project.hours[day];
-    });
-    return total;
+  const calculateDayTotal = (day: keyof Project['hours']) => {
+    return projects.reduce((sum, project) => sum + project.hours[day], 0);
+  };
+
+  const calculateGrandTotal = () => {
+    return projects.reduce((sum, project) => sum + calculateProjectTotal(project), 0);
   };
 
   const handleAddProject = () => {
@@ -156,53 +115,44 @@ export default function Timesheet() {
       id: Date.now().toString(),
       name: selectedProject,
       client: selectedClient,
-      hours: { ...formHours },
+      hours: {
+        monday: 0,
+        tuesday: 0,
+        wednesday: 0,
+        thursday: 0,
+        friday: 0,
+        saturday: 0,
+        sunday: 0,
+      },
     };
 
     setProjects([...projects, newProject]);
     setShowAddProjectModal(false);
     setSelectedClient("Select client");
     setSelectedProject("Select project");
-    setFormHours({
-      monday: 0,
-      tuesday: 0,
-      wednesday: 0,
-      thursday: 0,
-      friday: 0,
-      saturday: 0,
-      sunday: 0,
-    });
   };
 
-  const handleHourChange = (day: keyof typeof formHours, value: string) => {
-    setFormHours({
-      ...formHours,
-      [day]: parseFloat(value) || 0,
-    });
+  const handleHourChange = (projectId: string, day: keyof Project['hours'], value: string) => {
+    const numValue = parseFloat(value) || 0;
+    setProjects(projects.map(p => 
+      p.id === projectId 
+        ? { ...p, hours: { ...p.hours, [day]: Math.max(0, numValue) } }
+        : p
+    ));
   };
 
-  const handleResetModal = () => {
-    setShowAddProjectModal(false);
-    setSelectedClient("Select client");
-    setSelectedProject("Select project");
-    setFormHours({
-      monday: 0,
-      tuesday: 0,
-      wednesday: 0,
-      thursday: 0,
-      friday: 0,
-      saturday: 0,
-      sunday: 0,
-    });
-  };
-
-  const weekDayDates = [startDate, endDate].map(d => d);
   const dayDates: Date[] = [];
   for (let i = 0; i < 7; i++) {
     const d = new Date(startDate);
     d.setDate(d.getDate() + i);
     dayDates.push(d);
   }
+
+  const handleResetModal = () => {
+    setShowAddProjectModal(false);
+    setSelectedClient("Select client");
+    setSelectedProject("Select project");
+  };
 
   return (
     <DashboardLayout title="Timesheet">
@@ -213,24 +163,26 @@ export default function Timesheet() {
             <button
               onClick={handlePrevWeek}
               className="p-2 hover:bg-slate-100 rounded-lg"
+              data-testid="button-prev-week"
             >
               <ChevronLeft className="w-5 h-5 text-slate-600" />
             </button>
 
-            <span className="text-sm font-semibold text-slate-900 min-w-max">
+            <span className="text-sm font-semibold text-slate-900 min-w-max" data-testid="text-week-range">
               {dateRange}
             </span>
 
             <button
               onClick={handleNextWeek}
               className="p-2 hover:bg-slate-100 rounded-lg"
+              data-testid="button-next-week"
             >
               <ChevronRight className="w-5 h-5 text-slate-600" />
             </button>
 
             <button 
-              onClick={() => setShowCalendarModal(!showCalendarModal)}
               className="p-2 hover:bg-slate-100 rounded-lg ml-2"
+              data-testid="button-calendar"
             >
               <Calendar className="w-5 h-5 text-slate-600" />
             </button>
@@ -239,268 +191,231 @@ export default function Timesheet() {
           <button 
             onClick={() => setShowAddProjectModal(true)}
             className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90"
+            data-testid="button-add-project"
           >
             + Add Project
           </button>
         </div>
 
-        {/* Main Content Grid */}
-        <div className="flex gap-6 flex-1">
-          {/* Center Panel - Timesheet Table */}
-          <div className="flex-1">
-            {projects.length === 0 ? (
-              <div className="bg-white rounded-lg p-12 shadow-sm flex items-center justify-center min-h-96">
-                <p className="text-slate-500 text-center text-lg">
-                  No time sheets found for this week range
-                </p>
-              </div>
-            ) : (
-              <div className="bg-white rounded-lg shadow-sm overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-teal-700">
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Project Name</th>
-                      {dayDates.map((date, idx) => (
-                        <th key={idx} className="px-4 py-4 text-center text-sm font-semibold text-white whitespace-nowrap">
-                          {formatColumnHeaderDate(date)}
-                        </th>
-                      ))}
-                      <th className="px-4 py-4 text-center text-sm font-semibold text-white">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {projects.map((project, idx) => {
-                      const projectTotal = project.hours.monday + project.hours.tuesday + project.hours.wednesday + 
-                                          project.hours.thursday + project.hours.friday + project.hours.saturday + project.hours.sunday;
-                      return (
-                        <tr key={project.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50"}>
-                          <td className="px-6 py-4 text-sm text-slate-900 font-medium">{project.name}</td>
-                          <td className="px-4 py-4 text-center text-sm text-slate-900">{project.hours.monday}</td>
-                          <td className="px-4 py-4 text-center text-sm text-slate-900">{project.hours.tuesday}</td>
-                          <td className="px-4 py-4 text-center text-sm text-slate-900">{project.hours.wednesday}</td>
-                          <td className="px-4 py-4 text-center text-sm text-slate-900">{project.hours.thursday}</td>
-                          <td className="px-4 py-4 text-center text-sm text-slate-900">{project.hours.friday}</td>
-                          <td className="px-4 py-4 text-center text-sm text-slate-900">{project.hours.saturday}</td>
-                          <td className="px-4 py-4 text-center text-sm text-slate-900">{project.hours.sunday}</td>
-                          <td className="px-4 py-4 text-center text-sm font-semibold text-slate-900">{projectTotal}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
-          {/* Right Panel - Calendar */}
-          <div className="w-80">
-            <div className="bg-white rounded-lg p-6 shadow-sm">
-              <h3 className="font-bold text-slate-900 mb-4">March 2026</h3>
-
-              {/* Calendar Grid */}
-              <div className="mb-6">
-                {/* Day headers */}
-                <div className="grid grid-cols-7 gap-2 mb-2">
-                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
-                    <div key={day} className="text-center text-xs font-semibold text-slate-600">
-                      {day}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Calendar dates */}
-                <div className="grid grid-cols-7 gap-2">
-                  {Array.from({ length: 31 }).map((_, i) => {
-                    const date = i + 1;
+        {/* Main Content - Timesheet Table */}
+        <div className="flex-1 flex flex-col">
+          {projects.length === 0 ? (
+            <div className="bg-white rounded-lg p-12 shadow-sm flex items-center justify-center flex-1">
+              <p className="text-slate-500 text-center text-lg" data-testid="text-no-timesheet">
+                No time sheets found for this week range
+              </p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow-sm overflow-x-auto flex-1 flex flex-col">
+              <table className="w-full h-full">
+                <thead>
+                  <tr className="bg-teal-700">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-white sticky left-0 z-10 bg-teal-700">Project Name</th>
+                    {dayDates.map((date, idx) => (
+                      <th key={idx} className="px-4 py-4 text-center text-sm font-semibold text-white whitespace-nowrap min-w-20">
+                        {formatColumnHeaderDate(date)}
+                      </th>
+                    ))}
+                    <th className="px-4 py-4 text-center text-sm font-semibold text-white min-w-20">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {projects.map((project, idx) => {
+                    const projectTotal = calculateProjectTotal(project);
                     return (
-                      <div
-                        key={date}
-                        className="h-8 flex items-center justify-center text-xs font-medium rounded bg-white border border-slate-200 text-slate-900 cursor-pointer hover:bg-slate-50"
-                      >
-                        {date}
-                      </div>
+                      <tr key={project.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50"} data-testid={`row-project-${project.id}`}>
+                        <td className="px-6 py-4 text-sm text-slate-900 font-medium sticky left-0 z-10 bg-inherit">{project.name}</td>
+                        <td className="px-4 py-4 text-center">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.5"
+                            value={project.hours.monday}
+                            onChange={(e) => handleHourChange(project.id, 'monday', e.target.value)}
+                            className="w-16 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            data-testid={`input-hours-${project.id}-monday`}
+                          />
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.5"
+                            value={project.hours.tuesday}
+                            onChange={(e) => handleHourChange(project.id, 'tuesday', e.target.value)}
+                            className="w-16 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            data-testid={`input-hours-${project.id}-tuesday`}
+                          />
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.5"
+                            value={project.hours.wednesday}
+                            onChange={(e) => handleHourChange(project.id, 'wednesday', e.target.value)}
+                            className="w-16 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            data-testid={`input-hours-${project.id}-wednesday`}
+                          />
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.5"
+                            value={project.hours.thursday}
+                            onChange={(e) => handleHourChange(project.id, 'thursday', e.target.value)}
+                            className="w-16 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            data-testid={`input-hours-${project.id}-thursday`}
+                          />
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.5"
+                            value={project.hours.friday}
+                            onChange={(e) => handleHourChange(project.id, 'friday', e.target.value)}
+                            className="w-16 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            data-testid={`input-hours-${project.id}-friday`}
+                          />
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.5"
+                            value={project.hours.saturday}
+                            onChange={(e) => handleHourChange(project.id, 'saturday', e.target.value)}
+                            className="w-16 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            data-testid={`input-hours-${project.id}-saturday`}
+                          />
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.5"
+                            value={project.hours.sunday}
+                            onChange={(e) => handleHourChange(project.id, 'sunday', e.target.value)}
+                            className="w-16 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            data-testid={`input-hours-${project.id}-sunday`}
+                          />
+                        </td>
+                        <td className="px-4 py-4 text-center text-sm font-semibold text-slate-900" data-testid={`text-total-${project.id}`}>
+                          {projectTotal.toFixed(1)}
+                        </td>
+                      </tr>
                     );
                   })}
-                </div>
-              </div>
+                </tbody>
+              </table>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Bottom Section - Total Hours */}
-        <div className="mt-6 bg-slate-400 rounded-lg p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-8">
-              <span className="font-semibold text-white">Total Hours</span>
-              <div className="flex gap-6">
-                {[
-                  { label: "Mon", key: "monday" as const },
-                  { label: "Tue", key: "tuesday" as const },
-                  { label: "Wed", key: "wednesday" as const },
-                  { label: "Thu", key: "thursday" as const },
-                  { label: "Fri", key: "friday" as const },
-                  { label: "Sat", key: "saturday" as const },
-                  { label: "Sun", key: "sunday" as const },
-                ].map(day => (
-                  <div key={day.label} className="text-center">
-                    <p className="text-sm font-semibold text-white">{calculateDayTotal(day.key)}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <Button
-                className="bg-slate-500 text-white hover:bg-slate-600"
-              >
-                Save
-              </Button>
-              <Button className="bg-teal-700 text-white hover:bg-teal-800">
-                Submit Timesheet
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Calendar Modal */}
-        {showCalendarModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 shadow-lg max-w-2xl w-full">
-              {/* Modal Header with Navigation */}
-              <div className="flex items-center justify-between mb-6">
-                <button
-                  onClick={handlePrevMonth}
-                  className="p-2 hover:bg-slate-100 rounded-lg"
-                >
-                  <ChevronLeft className="w-5 h-5 text-slate-600" />
-                </button>
-                <h2 className="text-lg font-bold text-slate-900">
-                  {formatMonthYear(calendarMonth)}
-                </h2>
-                <button
-                  onClick={handleNextMonth}
-                  className="p-2 hover:bg-slate-100 rounded-lg"
-                >
-                  <ChevronRight className="w-5 h-5 text-slate-600" />
-                </button>
-              </div>
-
-              {/* Calendar Grid */}
-              <div className="mb-6">
-                {/* Day headers */}
-                <div className="grid grid-cols-7 gap-3 mb-3">
-                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => (
-                    <div key={day} className="text-center text-xs font-bold text-slate-700">
-                      {day}
+        {projects.length > 0 && (
+          <div className="mt-6 bg-slate-400 rounded-lg p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-8 flex-1">
+                <span className="font-semibold text-white min-w-max">Total Hours</span>
+                <div className="flex gap-6">
+                  {[
+                    { label: "Mon", key: "monday" as const },
+                    { label: "Tue", key: "tuesday" as const },
+                    { label: "Wed", key: "wednesday" as const },
+                    { label: "Thu", key: "thursday" as const },
+                    { label: "Fri", key: "friday" as const },
+                    { label: "Sat", key: "saturday" as const },
+                    { label: "Sun", key: "sunday" as const },
+                  ].map(day => (
+                    <div key={day.label} className="text-center min-w-16">
+                      <p className="text-sm font-semibold text-white" data-testid={`text-total-${day.label}`}>
+                        {calculateDayTotal(day.key).toFixed(1)}
+                      </p>
                     </div>
                   ))}
                 </div>
-
-                {/* Calendar dates */}
-                <div className="grid grid-cols-7 gap-3">
-                  {calendarDays.map((date, idx) => {
-                    if (!date) {
-                      return <div key={`empty-${idx}`} className="h-10"></div>;
-                    }
-
-                    return (
-                      <div
-                        key={date}
-                        className="h-10 flex items-center justify-center text-sm rounded cursor-pointer bg-white border border-slate-200 text-slate-900 font-semibold hover:bg-slate-50"
-                      >
-                        {date}
-                      </div>
-                    );
-                  })}
-                </div>
               </div>
 
-              <Button
-                onClick={() => setShowCalendarModal(false)}
-                className="w-full bg-primary text-white hover:bg-primary/90"
-              >
-                Close
-              </Button>
+              <div className="flex gap-3 ml-8">
+                <div className="text-center">
+                  <span className="text-sm font-semibold text-white mr-4" data-testid="text-grand-total">
+                    Total: {calculateGrandTotal().toFixed(1)}h
+                  </span>
+                </div>
+                <Button
+                  className="bg-slate-500 text-white hover:bg-slate-600"
+                  data-testid="button-save"
+                >
+                  Save
+                </Button>
+                <Button 
+                  className="bg-teal-700 text-white hover:bg-teal-800"
+                  data-testid="button-submit"
+                >
+                  Submit Timesheet
+                </Button>
+              </div>
             </div>
           </div>
         )}
 
         {/* Add Project Modal */}
         {showAddProjectModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-8 shadow-lg max-w-2xl w-full max-h-96 overflow-y-auto">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" data-testid="modal-add-project">
+            <div className="bg-white rounded-lg p-8 shadow-lg max-w-md w-full">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-bold text-slate-900">Add new project</h2>
                 <button
                   onClick={handleResetModal}
                   className="p-1 hover:bg-slate-100 rounded"
+                  data-testid="button-close-modal"
                 >
                   <X className="w-5 h-5 text-slate-600" />
                 </button>
               </div>
 
               <div className="space-y-4">
-                {/* Client and Project Dropdowns */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs uppercase font-semibold text-slate-600 block mb-2">
-                      Client
-                    </label>
-                    <select
-                      value={selectedClient}
-                      onChange={(e) => setSelectedClient(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                    >
-                      <option value="Select client">Select client</option>
-                      <option value="NovintiX">NovintiX</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-xs uppercase font-semibold text-slate-600 block mb-2">
-                      Project Name
-                    </label>
-                    <select
-                      value={selectedProject}
-                      onChange={(e) => setSelectedProject(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                    >
-                      <option value="Select project">Select project</option>
-                      <option value="AI - Internal">AI - Internal</option>
-                      <option value="Internal">Internal</option>
-                    </select>
-                  </div>
+                {/* Client Dropdown */}
+                <div>
+                  <label className="text-xs uppercase font-semibold text-slate-600 block mb-2">
+                    Client
+                  </label>
+                  <select
+                    value={selectedClient}
+                    onChange={(e) => {
+                      setSelectedClient(e.target.value);
+                      setSelectedProject("Select project");
+                    }}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    data-testid="select-client"
+                  >
+                    <option value="Select client">Select client</option>
+                    {Object.keys(clientData).map(client => (
+                      <option key={client} value={client}>{client}</option>
+                    ))}
+                  </select>
                 </div>
 
-                {/* Hours Input Fields */}
-                <div className="border-t pt-4">
-                  <label className="text-xs uppercase font-semibold text-slate-600 block mb-3">
-                    Hours per Day
+                {/* Project Dropdown */}
+                <div>
+                  <label className="text-xs uppercase font-semibold text-slate-600 block mb-2">
+                    Project Name
                   </label>
-                  <div className="grid grid-cols-7 gap-2">
-                    {[
-                      { label: "Mon", key: "monday" as const },
-                      { label: "Tue", key: "tuesday" as const },
-                      { label: "Wed", key: "wednesday" as const },
-                      { label: "Thu", key: "thursday" as const },
-                      { label: "Fri", key: "friday" as const },
-                      { label: "Sat", key: "saturday" as const },
-                      { label: "Sun", key: "sunday" as const },
-                    ].map(day => (
-                      <div key={day.label}>
-                        <label className="text-xs text-slate-600 block mb-1">{day.label}</label>
-                        <input
-                          type="number"
-                          min="0"
-                          max="24"
-                          step="0.5"
-                          value={formHours[day.key]}
-                          onChange={(e) => handleHourChange(day.key, e.target.value)}
-                          className="w-full px-2 py-1 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                        />
-                      </div>
+                  <select
+                    value={selectedProject}
+                    onChange={(e) => setSelectedProject(e.target.value)}
+                    disabled={selectedClient === "Select client"}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-slate-100 disabled:cursor-not-allowed"
+                    data-testid="select-project"
+                  >
+                    <option value="Select project">Select project</option>
+                    {getAvailableProjects().map(project => (
+                      <option key={project} value={project}>{project}</option>
                     ))}
-                  </div>
+                  </select>
                 </div>
 
                 {/* Buttons */}
@@ -509,14 +424,16 @@ export default function Timesheet() {
                     variant="outline"
                     onClick={handleResetModal}
                     className="flex-1 border-slate-300 text-slate-700"
+                    data-testid="button-cancel"
                   >
                     Cancel
                   </Button>
                   <Button
                     onClick={handleAddProject}
                     className="flex-1 bg-primary text-white hover:bg-primary/90"
+                    data-testid="button-add-confirm"
                   >
-                    Add Project
+                    Add
                   </Button>
                 </div>
               </div>
