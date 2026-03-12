@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMe } from "@/hooks/use-auth";
 import { Redirect } from "wouter";
-import { ChevronLeft, ChevronRight, Search, X, CalendarDays, Gift } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, X, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/DashboardLayout";
 
@@ -47,12 +47,23 @@ function parseDate(s: string): Date {
   return new Date(y, m - 1, d);
 }
 
+const MONTH_MAP: Record<string, number> = {
+  Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11,
+};
+
+function parseHolidayDate(s: string, y: number): Date {
+  const [mon, day] = s.split(" ");
+  return new Date(y, MONTH_MAP[mon], parseInt(day));
+}
+
 function MiniCalendar({
   referenceDate,
   leaveDates,
+  holidayDates = [],
 }: {
   referenceDate: Date;
   leaveDates: { start: string; end: string; status: string }[];
+  holidayDates?: string[];
 }) {
   const [viewDate, setViewDate] = useState(new Date(referenceDate));
   const year  = viewDate.getFullYear();
@@ -66,6 +77,10 @@ function MiniCalendar({
 
   const getDayColor = (day: number): string | null => {
     const d = new Date(year, month, day);
+    for (const hr of holidayDates) {
+      const hd = parseHolidayDate(hr, year);
+      if (hd.getDate() === day && hd.getMonth() === month) return "#f97316";
+    }
     for (const lr of leaveDates) {
       const s = parseDate(lr.start);
       const e = parseDate(lr.end);
@@ -160,13 +175,14 @@ function ApplyLeaveModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" data-testid="modal-apply-leave">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-bold text-slate-900">Apply Leave</h2>
-          <button onClick={onClose} className="p-1 hover:bg-slate-100 rounded" data-testid="button-close-modal">
-            <X className="w-5 h-5 text-slate-500" />
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4" style={{ backgroundColor: "#0F3D57" }}>
+          <h2 className="text-lg font-bold text-white">Apply Leave</h2>
+          <button onClick={onClose} className="p-1 hover:bg-white/20 rounded" data-testid="button-close-modal">
+            <X className="w-5 h-5 text-white" />
           </button>
         </div>
+        <div className="p-8">
 
         {error && (
           <p className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
@@ -240,6 +256,7 @@ function ApplyLeaveModal({
           >
             Submit
           </Button>
+        </div>
         </div>
       </div>
     </div>
@@ -404,6 +421,7 @@ export default function LeaveRequest() {
             <MiniCalendar
               referenceDate={new Date(2026, 2, 1)}
               leaveDates={leaveDates}
+              holidayDates={UPCOMING_HOLIDAYS.map(h => h.date)}
             />
           </div>
 
@@ -422,15 +440,12 @@ export default function LeaveRequest() {
 
           {/* Upcoming Holidays */}
           <div className="bg-white rounded-xl shadow-sm p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Gift className="w-4 h-4 text-amber-500" />
-              <h3 className="text-sm font-bold text-slate-800">Upcoming Holidays</h3>
-            </div>
+            <h3 className="text-sm font-bold text-slate-800 mb-3">Upcoming Holidays</h3>
             <div className="space-y-2.5">
               {UPCOMING_HOLIDAYS.map(h => (
                 <div key={h.name} className="flex items-center justify-between">
                   <span className="text-xs text-slate-700 font-medium">{h.name}</span>
-                  <span className="text-xs text-slate-500 bg-slate-100 rounded px-2 py-0.5 whitespace-nowrap">{h.date}</span>
+                  <span className="text-xs font-semibold text-white rounded px-2 py-0.5 whitespace-nowrap" style={{ backgroundColor: "#f97316" }}>{h.date}</span>
                 </div>
               ))}
             </div>
