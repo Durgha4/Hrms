@@ -188,7 +188,10 @@ export default function Timesheet() {
 
           <button 
             onClick={() => setShowAddProjectModal(true)}
-            className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90"
+            className="text-white px-4 py-2 rounded-lg text-sm font-semibold"
+            style={{ backgroundColor: "#0F766E" }}
+            onMouseOver={e => (e.currentTarget.style.backgroundColor = "#0D6B63")}
+            onMouseOut={e => (e.currentTarget.style.backgroundColor = "#0F766E")}
             data-testid="button-add-project"
           >
             + Add Project
