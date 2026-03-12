@@ -58,7 +58,7 @@ export default function Timesheet() {
   };
 
   const formatDateRange = (start: Date, end: Date) => {
-    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const startStr = `${days[start.getDay()]}, ${start.getDate()} ${months[start.getMonth()]} ${String(start.getFullYear()).slice(-2)}`;
     const endStr = `${days[end.getDay()]}, ${end.getDate()} ${months[end.getMonth()]} ${String(end.getFullYear()).slice(-2)}`;
@@ -66,7 +66,7 @@ export default function Timesheet() {
   };
 
   const formatColumnHeaderDate = (date: Date) => {
-    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]}`;
   };
@@ -227,9 +227,8 @@ export default function Timesheet() {
                         <td className="px-6 py-4 text-sm text-slate-900 font-medium sticky left-0 z-10 bg-inherit">{project.name}</td>
                         <td className="px-4 py-4 text-center">
                           <input
-                            type="number"
-                            min="0"
-                            step="0.5"
+                            type="text"
+                            inputMode="decimal"
                             value={project.hours.monday}
                             onChange={(e) => handleHourChange(project.id, 'monday', e.target.value)}
                             className="w-16 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -238,9 +237,8 @@ export default function Timesheet() {
                         </td>
                         <td className="px-4 py-4 text-center">
                           <input
-                            type="number"
-                            min="0"
-                            step="0.5"
+                            type="text"
+                            inputMode="decimal"
                             value={project.hours.tuesday}
                             onChange={(e) => handleHourChange(project.id, 'tuesday', e.target.value)}
                             className="w-16 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -249,9 +247,8 @@ export default function Timesheet() {
                         </td>
                         <td className="px-4 py-4 text-center">
                           <input
-                            type="number"
-                            min="0"
-                            step="0.5"
+                            type="text"
+                            inputMode="decimal"
                             value={project.hours.wednesday}
                             onChange={(e) => handleHourChange(project.id, 'wednesday', e.target.value)}
                             className="w-16 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -260,9 +257,8 @@ export default function Timesheet() {
                         </td>
                         <td className="px-4 py-4 text-center">
                           <input
-                            type="number"
-                            min="0"
-                            step="0.5"
+                            type="text"
+                            inputMode="decimal"
                             value={project.hours.thursday}
                             onChange={(e) => handleHourChange(project.id, 'thursday', e.target.value)}
                             className="w-16 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -271,9 +267,8 @@ export default function Timesheet() {
                         </td>
                         <td className="px-4 py-4 text-center">
                           <input
-                            type="number"
-                            min="0"
-                            step="0.5"
+                            type="text"
+                            inputMode="decimal"
                             value={project.hours.friday}
                             onChange={(e) => handleHourChange(project.id, 'friday', e.target.value)}
                             className="w-16 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -282,9 +277,8 @@ export default function Timesheet() {
                         </td>
                         <td className="px-4 py-4 text-center">
                           <input
-                            type="number"
-                            min="0"
-                            step="0.5"
+                            type="text"
+                            inputMode="decimal"
                             value={project.hours.saturday}
                             onChange={(e) => handleHourChange(project.id, 'saturday', e.target.value)}
                             className="w-16 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -293,9 +287,8 @@ export default function Timesheet() {
                         </td>
                         <td className="px-4 py-4 text-center">
                           <input
-                            type="number"
-                            min="0"
-                            step="0.5"
+                            type="text"
+                            inputMode="decimal"
                             value={project.hours.sunday}
                             onChange={(e) => handleHourChange(project.id, 'sunday', e.target.value)}
                             className="w-16 px-2 py-1 border border-slate-300 rounded text-center text-sm focus:outline-none focus:ring-2 focus:ring-primary"
