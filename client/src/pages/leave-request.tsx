@@ -14,6 +14,7 @@ interface LeaveRequest {
   days: number;
   status: "Approved" | "Pending" | "Rejected";
   appliedOn: string;
+  comments?: string;
 }
 
 const LEAVE_TYPES = [
@@ -125,13 +126,19 @@ function MiniCalendar({
       <div className="grid grid-cols-7 gap-y-0.5">
         {cells.map((day, idx) => {
           const color = day !== null ? getDayColor(day) : null;
+          const col = idx % 7;
+          const isWeekend = col === 5 || col === 6;
           return (
-            <div key={idx} className="flex items-center justify-center h-7">
+            <div
+              key={idx}
+              className="flex items-center justify-center h-7 rounded-sm"
+              style={isWeekend && day !== null ? { backgroundColor: "#EBEBF0" } : {}}
+            >
               {day !== null && (
                 <span
                   className={[
                     "w-7 h-7 flex items-center justify-center rounded-full text-xs font-medium",
-                    color ? "text-white font-semibold" : "text-slate-600",
+                    color ? "text-white font-semibold" : isWeekend ? "text-slate-400" : "text-slate-600",
                     isToday(day) && !color ? "ring-2 ring-blue-400 ring-offset-1" : "",
                   ].join(" ")}
                   style={color ? { backgroundColor: color } : {}}
@@ -380,7 +387,7 @@ export default function LeaveRequest() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr style={{ backgroundColor: HEADER_COLOR }}>
-                      {["Leave Type","Start Date","End Date","Days","Status","Applied On"].map(col => (
+                      {["Leave Type","Start Date","End Date","Days","Status","Applied On","Comments"].map(col => (
                         <th key={col} className="px-4 py-3 text-left text-xs font-semibold text-white whitespace-nowrap">
                           {col}
                         </th>
@@ -403,6 +410,7 @@ export default function LeaveRequest() {
                             </span>
                           </td>
                           <td className="px-4 py-3 text-slate-600">{formatDate(r.appliedOn)}</td>
+                          <td className="px-4 py-3 text-slate-500 italic">{r.comments ?? "—"}</td>
                         </tr>
                       );
                     })}
