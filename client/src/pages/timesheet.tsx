@@ -123,7 +123,6 @@ const statusLegend = [
   { color: "#f59e0b", label: "Pending" },
   { color: "#ef4444", label: "Rejected" },
   { color: "#3b82f6", label: "Saved (Draft)" },
-  { color: "#94a3b8", label: "Not Submitted" },
 ];
 
 /* ── Main Component ─────────────────────────────────────── */
@@ -327,11 +326,6 @@ export default function Timesheet() {
                     <Lock className="w-3 h-3" /> Submitted
                   </span>
                 )}
-                {isSaved && !isSubmitted && (
-                  <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-200">
-                    <CheckCircle className="w-3 h-3" /> Saved
-                  </span>
-                )}
               </div>
 
               <button
@@ -446,10 +440,6 @@ export default function Timesheet() {
             {/* Save / Submit Bar */}
             {projects.length > 0 && (
               <div className="flex items-center justify-end gap-3">
-                <span className="text-sm font-semibold text-slate-600 mr-2" data-testid="text-grand-total">
-                  Total: {calculateGrandTotal()}h
-                </span>
-
                 <Button
                   onClick={handleSave}
                   disabled={isSubmitted}
