@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useMe } from "@/hooks/use-auth";
 import { Redirect } from "wouter";
-import { ChevronLeft, ChevronRight, Calendar, X, CheckCircle, Lock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, X, CheckCircle, Lock, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/DashboardLayout";
 
@@ -20,7 +20,7 @@ interface Project {
   };
 }
 
-type TimesheetStatus = "draft" | "saved" | "submitted";
+type TimesheetStatus = "draft" | "saved" | "submitted" | "approved" | "rejected";
 
 const clientData = {
   "NovintiX": ["AI - Internal", "Internal"],
@@ -28,13 +28,36 @@ const clientData = {
 
 const HEADER_COLOR = "#0F3D57";
 
+const STATUS_COLORS: Record<string, string> = {
+  saved: "#3b82f6",
+  submitted: "#f59e0b",
+  approved: "#22c55e",
+  rejected: "#ef4444",
+};
+
+function getWeekMonday(d: Date): Date {
+  const copy = new Date(d);
+  const day = copy.getDay();
+  const diff = copy.getDate() - day + (day === 0 ? -6 : 1);
+  copy.setDate(diff);
+  copy.setHours(0, 0, 0, 0);
+  return copy;
+}
+
+function weekKey(d: Date): string {
+  const mon = getWeekMonday(d);
+  return `${mon.getFullYear()}-${String(mon.getMonth() + 1).padStart(2, "0")}-${String(mon.getDate()).padStart(2, "0")}`;
+}
+
 /* ── Mini Calendar ─────────────────────────────────────── */
 function MiniCalendar({
   referenceDate,
   onSelectDate,
+  weekStatuses = {},
 }: {
   referenceDate: Date;
   onSelectDate?: (d: Date) => void;
+  weekStatuses?: Record<string, TimesheetStatus>;
 }) {
   const [viewDate, setViewDate] = useState(new Date(referenceDate));
   const year = viewDate.getFullYear();
@@ -46,23 +69,20 @@ function MiniCalendar({
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const today = new Date();
 
-  const getWeekRange = (d: Date) => {
-    const copy = new Date(d);
-    const day = copy.getDay();
-    const diff = copy.getDate() - day + (day === 0 ? -6 : 1);
-    const mon = new Date(copy.setDate(diff));
-    const sun = new Date(mon);
-    sun.setDate(sun.getDate() + 6);
-    return { mon, sun };
-  };
-  const { mon: weekMon, sun: weekSun } = getWeekRange(referenceDate);
+  const currentWeekKey = weekKey(referenceDate);
 
-  const isInCurrentWeek = (day: number) => {
-    const d = new Date(year, month, day);
-    return d >= weekMon && d <= weekSun;
-  };
   const isToday = (day: number) =>
     today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
+
+  const getDayWeekKey = (day: number) => weekKey(new Date(year, month, day));
+
+  const getDayColor = (day: number): string | null => {
+    const key = getDayWeekKey(day);
+    const status = weekStatuses[key];
+    if (status && STATUS_COLORS[status]) return STATUS_COLORS[status];
+    if (key === currentWeekKey) return HEADER_COLOR;
+    return null;
+  };
 
   const cells: (number | null)[] = [
     ...Array(firstDayOfMonth).fill(null),
@@ -92,26 +112,28 @@ function MiniCalendar({
         ))}
       </div>
       <div className="grid grid-cols-7 gap-y-0.5">
-        {cells.map((day, idx) => (
-          <div key={idx} className="flex items-center justify-center h-7">
-            {day !== null && (
-              <span
-                onClick={() => onSelectDate && onSelectDate(new Date(year, month, day))}
-                className={[
-                  "w-7 h-7 flex items-center justify-center rounded-full text-xs font-medium transition-colors",
-                  onSelectDate ? "cursor-pointer" : "",
-                  isInCurrentWeek(day)
-                    ? "text-white font-semibold"
-                    : "text-slate-600 hover:bg-slate-100",
-                  isToday(day) && !isInCurrentWeek(day) ? "ring-2 ring-blue-400 ring-offset-1" : "",
-                ].join(" ")}
-                style={isInCurrentWeek(day) ? { backgroundColor: HEADER_COLOR } : {}}
-              >
-                {day}
-              </span>
-            )}
-          </div>
-        ))}
+        {cells.map((day, idx) => {
+          const bgColor = day !== null ? getDayColor(day) : null;
+          const colored = bgColor !== null;
+          return (
+            <div key={idx} className="flex items-center justify-center h-7">
+              {day !== null && (
+                <span
+                  onClick={() => onSelectDate && onSelectDate(new Date(year, month, day))}
+                  className={[
+                    "w-7 h-7 flex items-center justify-center rounded-full text-xs font-medium transition-colors",
+                    onSelectDate ? "cursor-pointer" : "",
+                    colored ? "text-white font-semibold" : "text-slate-600 hover:bg-slate-100",
+                    isToday(day) && !colored ? "ring-2 ring-blue-400 ring-offset-1" : "",
+                  ].join(" ")}
+                  style={colored ? { backgroundColor: bgColor! } : {}}
+                >
+                  {day}
+                </span>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -120,7 +142,7 @@ function MiniCalendar({
 /* ── Status Legend ─────────────────────────────────────── */
 const statusLegend = [
   { color: "#22c55e", label: "Approved" },
-  { color: "#f59e0b", label: "Pending" },
+  { color: "#f59e0b", label: "Submitted (Pending)" },
   { color: "#ef4444", label: "Rejected" },
   { color: "#3b82f6", label: "Saved (Draft)" },
 ];
@@ -135,6 +157,7 @@ export default function Timesheet() {
   const [selectedProject, setSelectedProject] = useState("Select project");
   const [projects, setProjects] = useState<Project[]>([]);
   const [timesheetStatus, setTimesheetStatus] = useState<TimesheetStatus>("draft");
+  const [weekStatuses, setWeekStatuses] = useState<Record<string, TimesheetStatus>>({});
   const [hourLimitHit, setHourLimitHit] = useState(false);
   const calendarBtnRef = useRef<HTMLButtonElement>(null);
   const calendarPopupRef = useRef<HTMLDivElement>(null);
@@ -191,13 +214,18 @@ export default function Timesheet() {
   const { startDate, endDate } = getWeekDates(currentWeek);
   const dateRange = formatDateRange(startDate, endDate);
 
+  const switchToWeek = (d: Date) => {
+    setCurrentWeek(d);
+    const key = weekKey(d);
+    setTimesheetStatus(weekStatuses[key] || "draft");
+    setProjects([]);
+    setHourLimitHit(false);
+  };
+
   const navigateWeek = (dir: "prev" | "next") => {
     const d = new Date(currentWeek);
     d.setDate(d.getDate() + (dir === "prev" ? -7 : 7));
-    setCurrentWeek(d);
-    setTimesheetStatus("draft");
-    setProjects([]);
-    setHourLimitHit(false);
+    switchToWeek(d);
   };
 
   const getAvailableProjects = () =>
@@ -225,7 +253,7 @@ export default function Timesheet() {
   };
 
   const handleHourChange = (projectId: string, day: keyof Project["hours"], value: string) => {
-    if (timesheetStatus === "submitted") return;
+    if (isLocked) return;
     const numValue = parseInt(value, 10) || 0;
     const clamped = Math.min(12, Math.max(0, numValue));
     if (numValue > 12) setHourLimitHit(true);
@@ -235,14 +263,21 @@ export default function Timesheet() {
     if (timesheetStatus === "saved") setTimesheetStatus("draft");
   };
 
-  const handleSave = () => {
-    setTimesheetStatus("saved");
+  const setStatusForWeek = (status: TimesheetStatus) => {
+    const key = weekKey(currentWeek);
+    setTimesheetStatus(status);
+    setWeekStatuses(prev => ({ ...prev, [key]: status }));
   };
 
+  const handleSave = () => setStatusForWeek("saved");
+
   const handleSubmit = () => {
-    if (timesheetStatus === "submitted") return;
-    setTimesheetStatus("submitted");
+    if (isLocked) return;
+    setStatusForWeek("submitted");
   };
+
+  const handleApprove = () => setStatusForWeek("approved");
+  const handleReject = () => setStatusForWeek("rejected");
 
   const dayDates: Date[] = [];
   for (let i = 0; i < 7; i++) {
@@ -259,6 +294,16 @@ export default function Timesheet() {
 
   const isSubmitted = timesheetStatus === "submitted";
   const isSaved = timesheetStatus === "saved";
+  const isApproved = timesheetStatus === "approved";
+  const isRejected = timesheetStatus === "rejected";
+  const isLocked = isSubmitted || isApproved || isRejected;
+
+  const statusBadge = () => {
+    if (isApproved) return <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200"><CheckCircle className="w-3 h-3" /> Approved</span>;
+    if (isRejected) return <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-200"><X className="w-3 h-3" /> Rejected</span>;
+    if (isSubmitted) return <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200"><Lock className="w-3 h-3" /> Submitted</span>;
+    return null;
+  };
 
   return (
     <DashboardLayout title="Timesheet">
@@ -309,10 +354,9 @@ export default function Timesheet() {
                     >
                       <MiniCalendar
                         referenceDate={currentWeek}
+                        weekStatuses={weekStatuses}
                         onSelectDate={(d) => {
-                          setCurrentWeek(d);
-                          setTimesheetStatus("draft");
-                          setProjects([]);
+                          switchToWeek(d);
                           setShowCalendarPopup(false);
                         }}
                       />
@@ -321,18 +365,14 @@ export default function Timesheet() {
                 </div>
 
                 {/* Status badge */}
-                {isSubmitted && (
-                  <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-200">
-                    <Lock className="w-3 h-3" /> Submitted
-                  </span>
-                )}
+                {statusBadge()}
               </div>
 
               <button
-                onClick={() => !isSubmitted && setShowAddProjectModal(true)}
+                onClick={() => !isLocked && setShowAddProjectModal(true)}
                 className="text-white px-4 py-2 rounded-lg text-sm font-semibold transition-opacity"
-                style={{ backgroundColor: HEADER_COLOR, opacity: isSubmitted ? 0.5 : 1, cursor: isSubmitted ? "not-allowed" : "pointer" }}
-                onMouseOver={e => { if (!isSubmitted) e.currentTarget.style.backgroundColor = "#0C3348"; }}
+                style={{ backgroundColor: HEADER_COLOR, opacity: isLocked ? 0.5 : 1, cursor: isLocked ? "not-allowed" : "pointer" }}
+                onMouseOver={e => { if (!isLocked) e.currentTarget.style.backgroundColor = "#0C3348"; }}
                 onMouseOut={e => { e.currentTarget.style.backgroundColor = HEADER_COLOR; }}
                 data-testid="button-add-project"
               >
@@ -379,7 +419,7 @@ export default function Timesheet() {
                             </td>
                             {(["monday","tuesday","wednesday","thursday","friday","saturday","sunday"] as (keyof Project["hours"])[]).map(day => (
                               <td key={day} className="px-4 py-3 text-center">
-                                {isSubmitted ? (
+                                {isLocked ? (
                                   <span className="inline-block w-14 px-2 py-1 bg-slate-100 rounded text-center text-sm text-slate-600 font-medium">
                                     {project.hours[day]}
                                   </span>
@@ -428,7 +468,7 @@ export default function Timesheet() {
             </div>
 
             {/* Validation Warning */}
-            {hourLimitHit && projects.length > 0 && !isSubmitted && (
+            {hourLimitHit && projects.length > 0 && !isLocked && (
               <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm" data-testid="text-hour-limit-warning">
                 <svg className="w-4 h-4 flex-shrink-0 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
@@ -442,7 +482,7 @@ export default function Timesheet() {
               <div className="flex items-center justify-end gap-3">
                 <Button
                   onClick={handleSave}
-                  disabled={isSubmitted}
+                  disabled={isLocked}
                   className="text-white disabled:opacity-50"
                   style={{ backgroundColor: isSaved ? "#16a34a" : "#475569" }}
                   data-testid="button-save"
@@ -452,12 +492,35 @@ export default function Timesheet() {
 
                 <Button
                   onClick={handleSubmit}
-                  disabled={isSubmitted}
+                  disabled={isLocked}
                   className="text-white disabled:opacity-60 disabled:cursor-not-allowed"
-                  style={{ backgroundColor: isSubmitted ? "#64748b" : HEADER_COLOR }}
+                  style={{ backgroundColor: isLocked ? "#64748b" : HEADER_COLOR }}
                   data-testid="button-submit"
                 >
-                  {isSubmitted ? <><Lock className="w-4 h-4 mr-1" /> Submitted</> : "Submit Timesheet"}
+                  {isSubmitted || isApproved || isRejected ? <><Lock className="w-4 h-4 mr-1" /> Submitted</> : "Submit Timesheet"}
+                </Button>
+              </div>
+            )}
+
+            {/* Manager Actions (simulate approve / reject after submission) */}
+            {isSubmitted && (
+              <div className="flex items-center gap-3 border-t border-slate-100 pt-4">
+                <span className="text-xs text-slate-500 font-medium mr-1">Simulate manager action:</span>
+                <Button
+                  onClick={handleApprove}
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  data-testid="button-approve"
+                >
+                  <ThumbsUp className="w-3.5 h-3.5 mr-1" /> Approve
+                </Button>
+                <Button
+                  onClick={handleReject}
+                  size="sm"
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                  data-testid="button-reject"
+                >
+                  <ThumbsDown className="w-3.5 h-3.5 mr-1" /> Reject
                 </Button>
               </div>
             )}
@@ -476,11 +539,8 @@ export default function Timesheet() {
             </div>
             <MiniCalendar
               referenceDate={currentWeek}
-              onSelectDate={(d) => {
-                setCurrentWeek(d);
-                setTimesheetStatus("draft");
-                setProjects([]);
-              }}
+              weekStatuses={weekStatuses}
+              onSelectDate={(d) => switchToWeek(d)}
             />
           </div>
 
@@ -529,22 +589,27 @@ export default function Timesheet() {
                 <select
                   value={selectedProject}
                   onChange={e => setSelectedProject(e.target.value)}
-                  disabled={selectedClient === "Select client"}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-slate-100 disabled:cursor-not-allowed"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   data-testid="select-project"
+                  disabled={selectedClient === "Select client"}
                 >
                   <option value="Select project">Select project</option>
                   {getAvailableProjects().map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
               </div>
-              <div className="flex gap-3 mt-6">
-                <Button variant="outline" onClick={handleResetModal} className="flex-1 border-slate-300 text-slate-700" data-testid="button-cancel">
-                  Cancel
-                </Button>
-                <Button onClick={handleAddProject} className="flex-1 bg-primary text-white hover:bg-primary/90" data-testid="button-add-confirm">
-                  Add
-                </Button>
-              </div>
+            </div>
+            <div className="flex gap-3 mt-8">
+              <Button variant="outline" className="flex-1" onClick={handleResetModal} data-testid="button-cancel-modal">
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 text-white"
+                style={{ backgroundColor: HEADER_COLOR }}
+                onClick={handleAddProject}
+                data-testid="button-confirm-add-project"
+              >
+                Add Project
+              </Button>
             </div>
           </div>
         </div>
