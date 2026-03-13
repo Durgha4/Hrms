@@ -65,6 +65,29 @@ function parseHolidayDate(s: string, y: number): Date {
   return new Date(y, MONTH_MAP[mon], parseInt(day));
 }
 
+function isGovHoliday(d: Date): boolean {
+  return UPCOMING_HOLIDAYS.some(h => {
+    if (h.type !== "government") return false;
+    const hd = parseHolidayDate(h.date, d.getFullYear());
+    return hd.getDate() === d.getDate() && hd.getMonth() === d.getMonth() && hd.getFullYear() === d.getFullYear();
+  });
+}
+
+function countWorkingDays(start: string, end: string): number {
+  if (!start || !end) return 0;
+  const s = parseDate(start);
+  const e = parseDate(end);
+  if (e < s) return 0;
+  let count = 0;
+  const cur = new Date(s);
+  while (cur <= e) {
+    const dow = cur.getDay();
+    if (dow !== 0 && dow !== 6 && !isGovHoliday(cur)) count++;
+    cur.setDate(cur.getDate() + 1);
+  }
+  return count;
+}
+
 function MiniCalendar({
   referenceDate,
   leaveDates,
@@ -91,17 +114,27 @@ function MiniCalendar({
 
   const getDayInfo = (day: number): DayInfo => {
     const d = new Date(year, month, day);
+    const dow = d.getDay();
+    const isWeekend = dow === 0 || dow === 6;
+
+    // Check holiday first — always takes priority over leave coloring
+    for (const h of holidays) {
+      const hd = parseHolidayDate(h.date, year);
+      if (hd.getDate() === day && hd.getMonth() === month)
+        return { leaveStatus: null, holidayType: h.type };
+    }
+
+    // Weekends stay grey — don't apply leave color
+    if (isWeekend) return { leaveStatus: null, holidayType: null };
+
+    // Only colour as leave on working days
     for (const lr of leaveDates) {
       const s = parseDate(lr.start);
       const e = parseDate(lr.end);
       s.setHours(0,0,0,0); e.setHours(23,59,59,999);
       if (d >= s && d <= e) return { leaveStatus: lr.status, holidayType: null };
     }
-    for (const h of holidays) {
-      const hd = parseHolidayDate(h.date, year);
-      if (hd.getDate() === day && hd.getMonth() === month)
-        return { leaveStatus: null, holidayType: h.type };
-    }
+
     return { leaveStatus: null, holidayType: null };
   };
 
@@ -194,11 +227,7 @@ function ApplyLeaveModal({
   const [reason, setReason]   = useState("");
   const [error, setError]     = useState("");
 
-  const calcDays = () => {
-    if (!startDate || !endDate) return 0;
-    const diff = (parseDate(endDate).getTime() - parseDate(startDate).getTime()) / 86400000;
-    return diff >= 0 ? diff + 1 : 0;
-  };
+  const calcDays = () => countWorkingDays(startDate, endDate);
 
   const handleSubmit = () => {
     if (!type || !startDate || !endDate) { setError("Please fill in all required fields."); return; }
