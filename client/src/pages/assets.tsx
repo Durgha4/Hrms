@@ -30,10 +30,31 @@ const mockRequests: AssetRequest[] = [];
 export default function Assets() {
   const { data: user, isLoading } = useMe();
   const [assets] = useState<Asset[]>(mockAssets);
-  const [requests] = useState<AssetRequest[]>(mockRequests);
+  const [requests, setRequests] = useState<AssetRequest[]>(mockRequests);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [assetType, setAssetType] = useState("");
   const [reason, setReason] = useState("");
+
+  const handleSubmitRequest = () => {
+    if (assetType && reason.length >= 10) {
+      const newRequest: AssetRequest = {
+        id: `req-${Date.now()}`,
+        assetType,
+        reason,
+        requestDate: new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "2-digit",
+        }),
+        status: "Pending",
+        comments: "",
+      };
+      setRequests([...requests, newRequest]);
+      setShowRequestModal(false);
+      setAssetType("");
+      setReason("");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -255,11 +276,7 @@ export default function Assets() {
                     Cancel
                   </button>
                   <button
-                    onClick={() => {
-                      setShowRequestModal(false);
-                      setAssetType("");
-                      setReason("");
-                    }}
+                    onClick={handleSubmitRequest}
                     disabled={!assetType || reason.length < 10}
                     className="flex-1 text-white py-2 rounded-lg text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ 
