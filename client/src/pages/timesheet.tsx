@@ -516,7 +516,7 @@ export default function Timesheet() {
                 { color: "#ef4444", label: "Rejected", statusKey: "rejected" as TimesheetStatus },
                 { color: "#3b82f6", label: "Draft", statusKey: "saved" as TimesheetStatus },
               ].map(({ color, label, statusKey }) => {
-                const count = Object.values(weekStatuses).filter(s => s === statusKey).length;
+                const count = Object.values(weekStatuses).filter(s => s === statusKey).length * 7;
                 return (
                   <div key={label} className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
