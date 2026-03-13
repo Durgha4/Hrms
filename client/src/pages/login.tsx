@@ -67,6 +67,15 @@ export default function Login() {
         {/* Subtle top gradient line */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
 
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <img
+            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKVW_LlI3J3jD3Iet9soKQKB4Kbyk7qZINPw&s"
+            alt="Logo"
+            className="w-[72px] h-[72px] object-contain"
+          />
+        </div>
+
         {/* Employee / Client Toggle */}
         <div className="flex p-1 bg-slate-50 border border-slate-200 rounded-lg mb-8 relative">
           <button
@@ -93,20 +102,13 @@ export default function Login() {
           </button>
         </div>
 
-        <div className="mb-8 flex items-center gap-3">
-          <img
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTKVW_LlI3J3jD3Iet9soKQKB4Kbyk7qZINPw&s"
-            alt="Logo"
-            className="w-[48px] h-[48px] object-contain flex-shrink-0"
-          />
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900 font-display leading-tight">
-              Welcome Back
-            </h1>
-            <p className="text-slate-500 text-sm">
-              Sign in to access your account
-            </p>
-          </div>
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-slate-900 font-display mb-2">
+            Welcome Back
+          </h1>
+          <p className="text-slate-500 text-sm">
+            Sign in to access your account
+          </p>
         </div>
 
         {/* Error Message */}
