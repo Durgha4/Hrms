@@ -31,7 +31,7 @@ export default function DashboardNavbar({ title = "Profile" }: DashboardNavbarPr
           <img
             src={xLogo}
             alt="X Logo"
-            className="w-10 h-10 -mt-6 -ml-2"
+            className="w-10 h-10 -mt-6 -ml-2 mt-3"
           />
           <h1 className="text-white font-bold text-lg">{title}</h1>
         </div>
