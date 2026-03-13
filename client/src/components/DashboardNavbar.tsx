@@ -31,8 +31,7 @@ export default function DashboardNavbar({ title = "Profile" }: DashboardNavbarPr
           <img
             src={xLogo}
             alt="X Logo"
-            className="w-10 h-10 -mt-6 -ml-2"
-            style={{ marginTop: "10px" }}
+            className="w-10 h-10 object-contain"
           />
           <h1 className="text-white font-bold text-lg">{title}</h1>
         </div>
