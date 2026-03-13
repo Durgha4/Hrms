@@ -90,6 +90,24 @@ export default function Profile() {
   const { data: user, isLoading } = useMe();
   const [editingSection, setEditingSection] = useState<string | null>(null);
 
+  /* Resume state */
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+
+  const handleResumeUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) setResumeFile(file);
+  };
+
+  const handleResumeDownload = () => {
+    if (!resumeFile) return;
+    const url = URL.createObjectURL(resumeFile);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = resumeFile.name;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   /* Left column state */
   const [basicDetails, setBasicDetails] = useState<BasicDetails>({ employeeId: "EMP-2024-001", firstName: "Durgha", lastName: "S", dateOfJoining: "2024-01-15", nationality: "Indian", dateOfBirth: "1998-06-20", maritalStatus: "Single", religion: "Hindu" });
   const [contactInfo, setContactInfo] = useState<ContactInfo>({ officialEmail: "durgha.s@company.com", mobileNumber: "+91 98765 43210", personalEmail: "durgha.s@gmail.com", emergencyContact: "+91 91234 56789" });
@@ -207,13 +225,23 @@ export default function Profile() {
             <h3 className="text-sm font-bold text-slate-800 mb-4">Resume</h3>
             <div className="flex flex-col gap-3">
               <label className="flex items-center gap-3 border-2 border-dashed border-slate-200 rounded-xl p-4 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors group">
-                <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center group-hover:bg-blue-100"><Upload className="w-4 h-4 text-blue-600" /></div>
-                <div><p className="text-sm font-medium text-slate-700">Upload Resume</p><p className="text-xs text-slate-400">PDF, DOC up to 5MB</p></div>
-                <input type="file" className="hidden" accept=".pdf,.doc,.docx" />
+                <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 flex-shrink-0"><Upload className="w-4 h-4 text-blue-600" /></div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-slate-700 truncate">{resumeFile ? resumeFile.name : "Upload Resume"}</p>
+                  <p className="text-xs text-slate-400">{resumeFile ? `${(resumeFile.size / 1024).toFixed(1)} KB` : "PDF, DOC up to 5MB"}</p>
+                </div>
+                <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={handleResumeUpload} />
               </label>
-              <button className="flex items-center gap-3 border border-slate-200 rounded-xl p-4 hover:bg-slate-50 transition-colors group">
-                <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center group-hover:bg-slate-200"><Download className="w-4 h-4 text-slate-600" /></div>
-                <div className="text-left"><p className="text-sm font-medium text-slate-700">Download Resume</p><p className="text-xs text-slate-400">Download current resume</p></div>
+              <button
+                onClick={handleResumeDownload}
+                disabled={!resumeFile}
+                className="flex items-center gap-3 border border-slate-200 rounded-xl p-4 hover:bg-slate-50 transition-colors group disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center group-hover:bg-slate-200 flex-shrink-0"><Download className="w-4 h-4 text-slate-600" /></div>
+                <div className="text-left min-w-0">
+                  <p className="text-sm font-medium text-slate-700">Download Resume</p>
+                  <p className="text-xs text-slate-400 truncate">{resumeFile ? resumeFile.name : "No resume uploaded yet"}</p>
+                </div>
               </button>
             </div>
           </div>
