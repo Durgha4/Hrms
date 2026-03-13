@@ -17,6 +17,12 @@ interface LeaveRequest {
   comments?: string;
 }
 
+interface Holiday {
+  name: string;
+  date: string;
+  type: "government" | "flex";
+}
+
 const LEAVE_TYPES = [
   "Earned Leave",
   "Sick Leave",
@@ -29,17 +35,19 @@ const STATUS_OPTIONS = ["Approved", "Pending", "Rejected"] as const;
 
 const HEADER_COLOR = "#0F3D57";
 
-const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
-  Approved: { bg: "bg-green-50",  text: "text-green-700",  dot: "#22c55e" },
-  Pending:  { bg: "bg-yellow-50", text: "text-yellow-700", dot: "#eab308" },
-  Rejected: { bg: "bg-red-50",   text: "text-red-600",    dot: "#ef4444" },
+const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string; calBg: string; calText: string }> = {
+  Approved: { bg: "bg-blue-50",   text: "text-blue-700",   dot: "#22c55e", calBg: "#dbeafe", calText: "#1d4ed8" },
+  Pending:  { bg: "bg-yellow-50", text: "text-yellow-700", dot: "#eab308", calBg: "#fef9c3", calText: "#854d0e" },
+  Rejected: { bg: "bg-red-50",   text: "text-red-600",    dot: "#ef4444", calBg: "#fee2e2", calText: "#b91c1c" },
 };
 
-const UPCOMING_HOLIDAYS = [
-  { name: "Ugadi",                 date: "Mar 19" },
-  { name: "Id-ul-Fitr (Ramzan)",   date: "Mar 31" },
-  { name: "Good Friday",           date: "Apr 3"  },
-  { name: "Dr. B.R. Ambedkar Jayanti", date: "Apr 14" },
+const UPCOMING_HOLIDAYS: Holiday[] = [
+  { name: "Ugadi",                      date: "Mar 19", type: "government" },
+  { name: "Id-ul-Fitr (Ramzan)",        date: "Mar 31", type: "government" },
+  { name: "Good Friday",                date: "Apr 3",  type: "government" },
+  { name: "Dr. B.R. Ambedkar Jayanti", date: "Apr 14", type: "government" },
+  { name: "Flex Friday",               date: "Apr 10", type: "flex" },
+  { name: "Flex Day",                  date: "May 2",  type: "flex" },
 ];
 
 /* ─── Mini Calendar ─────────────────────────────────────── */
@@ -60,11 +68,11 @@ function parseHolidayDate(s: string, y: number): Date {
 function MiniCalendar({
   referenceDate,
   leaveDates,
-  holidayDates = [],
+  holidays = [],
 }: {
   referenceDate: Date;
   leaveDates: { start: string; end: string; status: string }[];
-  holidayDates?: string[];
+  holidays?: Holiday[];
 }) {
   const [viewDate, setViewDate] = useState(new Date(referenceDate));
   const year  = viewDate.getFullYear();
@@ -76,23 +84,25 @@ function MiniCalendar({
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const today = new Date();
 
-  const getDayInfo = (day: number): { color: string | null; isLeave: boolean; isHoliday: boolean } => {
+  interface DayInfo {
+    leaveStatus: string | null;
+    holidayType: "government" | "flex" | null;
+  }
+
+  const getDayInfo = (day: number): DayInfo => {
     const d = new Date(year, month, day);
-    for (const hr of holidayDates) {
-      const hd = parseHolidayDate(hr, year);
-      if (hd.getDate() === day && hd.getMonth() === month)
-        return { color: "#f97316", isLeave: false, isHoliday: true };
-    }
     for (const lr of leaveDates) {
       const s = parseDate(lr.start);
       const e = parseDate(lr.end);
       s.setHours(0,0,0,0); e.setHours(23,59,59,999);
-      if (d >= s && d <= e) {
-        const color = STATUS_STYLES[lr.status]?.dot ?? "#eab308";
-        return { color, isLeave: true, isHoliday: false };
-      }
+      if (d >= s && d <= e) return { leaveStatus: lr.status, holidayType: null };
     }
-    return { color: null, isLeave: false, isHoliday: false };
+    for (const h of holidays) {
+      const hd = parseHolidayDate(h.date, year);
+      if (hd.getDate() === day && hd.getMonth() === month)
+        return { leaveStatus: null, holidayType: h.type };
+    }
+    return { leaveStatus: null, holidayType: null };
   };
 
   const isToday = (day: number) =>
@@ -105,52 +115,62 @@ function MiniCalendar({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-3">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
         <button
           onClick={() => { const d = new Date(viewDate); d.setMonth(d.getMonth() - 1); setViewDate(d); }}
-          className="p-1 hover:bg-slate-100 rounded-lg"
+          className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
         >
           <ChevronLeft className="w-4 h-4 text-slate-500" />
         </button>
-        <span className="text-xs font-bold text-slate-700">{monthNames[month]} {year}</span>
+        <span className="text-sm font-bold text-slate-800">{monthNames[month]} {year}</span>
         <button
           onClick={() => { const d = new Date(viewDate); d.setMonth(d.getMonth() + 1); setViewDate(d); }}
-          className="p-1 hover:bg-slate-100 rounded-lg"
+          className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
         >
           <ChevronRight className="w-4 h-4 text-slate-500" />
         </button>
       </div>
 
+      {/* Day labels */}
       <div className="grid grid-cols-7 mb-1">
         {dayLabels.map(l => (
-          <div key={l} className="text-center text-xs font-semibold text-slate-400 py-1">{l}</div>
+          <div key={l} className="text-center text-[10px] font-semibold text-slate-400 py-1">{l}</div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-y-0.5">
+      {/* Day cells */}
+      <div className="grid grid-cols-7 gap-y-1">
         {cells.map((day, idx) => {
-          const { color, isLeave } = day !== null ? getDayInfo(day) : { color: null, isLeave: false, isHoliday: false };
+          if (day === null) return <div key={idx} />;
           const col = idx % 7;
           const isWeekend = col === 5 || col === 6;
+          const { leaveStatus, holidayType } = getDayInfo(day);
+          const st = leaveStatus ? STATUS_STYLES[leaveStatus] : null;
+          const todayRing = isToday(day) && !leaveStatus;
           return (
-            <div
-              key={idx}
-              className="flex items-center justify-center h-7 rounded-sm"
-              style={isWeekend && day !== null && !color ? { backgroundColor: "#EBEBF0" } : {}}
-            >
-              {day !== null && (
-                <span
-                  className={[
-                    "w-7 h-7 flex items-center justify-center rounded-full text-xs font-medium transition-colors",
-                    color ? "text-white font-bold" : isWeekend ? "text-slate-400" : "text-slate-600",
-                    isToday(day) && !color ? "ring-2 ring-blue-400 ring-offset-1" : "",
-                    isLeave ? "ring-2 ring-orange-300 ring-offset-1" : "",
-                  ].join(" ")}
-                  style={color ? { backgroundColor: color } : {}}
-                  title={isLeave ? "Leave applied" : undefined}
-                >
-                  {day}
-                </span>
+            <div key={idx} className="flex flex-col items-center justify-start gap-0.5 h-10">
+              <span
+                className={[
+                  "w-8 h-8 flex items-center justify-center rounded-lg text-xs font-medium transition-colors",
+                  !leaveStatus && isWeekend ? "bg-slate-100 text-slate-400" : "",
+                  !leaveStatus && !isWeekend ? "text-slate-600 hover:bg-slate-50" : "",
+                  todayRing ? "ring-2 ring-blue-400 ring-offset-1" : "",
+                ].join(" ")}
+                style={
+                  st
+                    ? { backgroundColor: st.calBg, color: st.calText }
+                    : {}
+                }
+              >
+                {day}
+              </span>
+              {/* Holiday indicator */}
+              {holidayType === "government" && (
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-500 flex-shrink-0" />
+              )}
+              {holidayType === "flex" && (
+                <span className="text-[8px] font-bold text-white bg-orange-500 rounded px-1 leading-tight">F</span>
               )}
             </div>
           );
@@ -431,16 +451,16 @@ export default function LeaveRequest() {
         <div className="flex flex-col gap-4">
 
           {/* Calendar */}
-          <div className="bg-white rounded-xl shadow-sm p-5">
+          <div className="bg-white rounded-xl shadow-md p-5">
             <MiniCalendar
               referenceDate={new Date(2026, 2, 1)}
               leaveDates={leaveDates}
-              holidayDates={UPCOMING_HOLIDAYS.map(h => h.date)}
+              holidays={UPCOMING_HOLIDAYS}
             />
           </div>
 
           {/* Status Legend */}
-          <div className="bg-white rounded-xl shadow-sm p-4">
+          <div className="bg-white rounded-xl shadow-md p-4">
             <h3 className="text-sm font-bold text-slate-800 mb-3">Status Legend</h3>
             <div className="space-y-2.5">
               {(["Approved","Pending","Rejected"] as const).map(s => (
@@ -449,17 +469,31 @@ export default function LeaveRequest() {
                   <span className="text-xs text-slate-600">{s}</span>
                 </div>
               ))}
+              <div className="flex items-center gap-3 pt-1 border-t border-slate-100">
+                <span className="w-3 h-3 rounded-full flex-shrink-0 bg-purple-500" />
+                <span className="text-xs text-slate-600">Government Holiday</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-[8px] font-bold text-white bg-orange-500 rounded px-1.5 py-0.5 leading-tight">F</span>
+                <span className="text-xs text-slate-600">Flex Holiday</span>
+              </div>
             </div>
           </div>
 
           {/* Upcoming Holidays */}
-          <div className="bg-white rounded-xl shadow-sm p-4">
+          <div className="bg-white rounded-xl shadow-md p-4">
             <h3 className="text-sm font-bold text-slate-800 mb-3">Upcoming Holidays</h3>
-            <div className="space-y-2.5">
+            <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
               {UPCOMING_HOLIDAYS.map(h => (
-                <div key={h.name} className="flex items-center justify-between">
-                  <span className="text-xs text-slate-700 font-medium">{h.name}</span>
-                  <span className="text-xs font-semibold text-white rounded px-2 py-0.5 whitespace-nowrap" style={{ backgroundColor: "#f97316" }}>{h.date}</span>
+                <div key={h.name} className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    {h.type === "government"
+                      ? <span className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0" />
+                      : <span className="text-[8px] font-bold text-white bg-orange-500 rounded px-1 leading-tight flex-shrink-0">F</span>
+                    }
+                    <span className="text-xs text-slate-700 font-medium truncate">{h.name}</span>
+                  </div>
+                  <span className="text-xs font-semibold text-slate-500 whitespace-nowrap">{h.date}</span>
                 </div>
               ))}
             </div>
