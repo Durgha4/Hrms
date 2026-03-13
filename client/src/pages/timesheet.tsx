@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useMe } from "@/hooks/use-auth";
 import { Redirect } from "wouter";
-import { ChevronLeft, ChevronRight, Calendar, X, CheckCircle, Lock, ThumbsUp, ThumbsDown } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, X, CheckCircle, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/DashboardLayout";
 
@@ -139,14 +139,6 @@ function MiniCalendar({
   );
 }
 
-/* ── Status Legend ─────────────────────────────────────── */
-const statusLegend = [
-  { color: "#22c55e", label: "Approved" },
-  { color: "#f59e0b", label: "Submitted (Pending)" },
-  { color: "#ef4444", label: "Rejected" },
-  { color: "#3b82f6", label: "Draft" },
-];
-
 /* ── Main Component ─────────────────────────────────────── */
 export default function Timesheet() {
   const { data: user, isLoading } = useMe();
@@ -275,9 +267,6 @@ export default function Timesheet() {
     if (isLocked) return;
     setStatusForWeek("submitted");
   };
-
-  const handleApprove = () => setStatusForWeek("approved");
-  const handleReject = () => setStatusForWeek("rejected");
 
   const dayDates: Date[] = [];
   for (let i = 0; i < 7; i++) {
@@ -502,29 +491,6 @@ export default function Timesheet() {
               </div>
             )}
 
-            {/* Manager Actions (simulate approve / reject after submission) */}
-            {isSubmitted && (
-              <div className="flex items-center gap-3 border-t border-slate-100 pt-4">
-                <span className="text-xs text-slate-500 font-medium mr-1">Simulate manager action:</span>
-                <Button
-                  onClick={handleApprove}
-                  size="sm"
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                  data-testid="button-approve"
-                >
-                  <ThumbsUp className="w-3.5 h-3.5 mr-1" /> Approve
-                </Button>
-                <Button
-                  onClick={handleReject}
-                  size="sm"
-                  className="bg-red-600 hover:bg-red-700 text-white"
-                  data-testid="button-reject"
-                >
-                  <ThumbsDown className="w-3.5 h-3.5 mr-1" /> Reject
-                </Button>
-              </div>
-            )}
-
           </div>
         </div>
 
@@ -544,12 +510,23 @@ export default function Timesheet() {
           <div className="bg-white rounded-xl shadow-sm" style={{ padding: "16px" }}>
             <h3 className="text-sm font-bold text-slate-800 mb-3">Status Legend</h3>
             <div className="space-y-2.5">
-              {statusLegend.map(({ color, label }) => (
-                <div key={label} className="flex items-center gap-3">
-                  <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-                  <span className="text-xs text-slate-600">{label}</span>
-                </div>
-              ))}
+              {[
+                { color: "#22c55e", label: "Approved", statusKey: "approved" as TimesheetStatus },
+                { color: "#f59e0b", label: "Submitted", statusKey: "submitted" as TimesheetStatus },
+                { color: "#ef4444", label: "Rejected", statusKey: "rejected" as TimesheetStatus },
+                { color: "#3b82f6", label: "Draft", statusKey: "saved" as TimesheetStatus },
+              ].map(({ color, label, statusKey }) => {
+                const count = Object.values(weekStatuses).filter(s => s === statusKey).length;
+                return (
+                  <div key={label} className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                      <span className="text-xs text-slate-600">{label}</span>
+                    </div>
+                    <span className="text-xs font-semibold text-slate-500">({count})</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
