@@ -4,6 +4,7 @@ import { Redirect } from "wouter";
 import { Plus, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/DashboardLayout";
+import SuccessModal from "@/components/SuccessModal";
 
 interface Asset {
   id: string;
@@ -32,6 +33,7 @@ export default function Assets() {
   const [assets] = useState<Asset[]>(mockAssets);
   const [requests, setRequests] = useState<AssetRequest[]>(mockRequests);
   const [showRequestModal, setShowRequestModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [assetType, setAssetType] = useState("");
   const [reason, setReason] = useState("");
 
@@ -51,6 +53,7 @@ export default function Assets() {
       };
       setRequests([...requests, newRequest]);
       setShowRequestModal(false);
+      setShowSuccessModal(true);
       setAssetType("");
       setReason("");
     }
@@ -217,6 +220,13 @@ export default function Assets() {
             </div>
           )}
         </div>
+
+        {/* Success Modal */}
+        <SuccessModal 
+          isOpen={showSuccessModal} 
+          onClose={() => setShowSuccessModal(false)}
+          autoCloseDuration={2000}
+        />
 
         {/* Request Asset Modal */}
         {showRequestModal && (
