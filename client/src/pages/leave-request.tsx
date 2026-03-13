@@ -30,9 +30,9 @@ const STATUS_OPTIONS = ["Approved", "Pending", "Rejected"] as const;
 const HEADER_COLOR = "#0F3D57";
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
-  Approved: { bg: "bg-green-50", text: "text-green-700", dot: "#22c55e" },
-  Pending:  { bg: "bg-amber-50",  text: "text-amber-700",  dot: "#f59e0b" },
-  Rejected: { bg: "bg-red-50",   text: "text-red-600",   dot: "#ef4444" },
+  Approved: { bg: "bg-green-50",  text: "text-green-700",  dot: "#22c55e" },
+  Pending:  { bg: "bg-yellow-50", text: "text-yellow-700", dot: "#eab308" },
+  Rejected: { bg: "bg-red-50",   text: "text-red-600",    dot: "#ef4444" },
 };
 
 const UPCOMING_HOLIDAYS = [
@@ -87,8 +87,10 @@ function MiniCalendar({
       const s = parseDate(lr.start);
       const e = parseDate(lr.end);
       s.setHours(0,0,0,0); e.setHours(23,59,59,999);
-      if (d >= s && d <= e)
-        return { color: "#f97316", isLeave: true, isHoliday: false };
+      if (d >= s && d <= e) {
+        const color = STATUS_STYLES[lr.status]?.dot ?? "#eab308";
+        return { color, isLeave: true, isHoliday: false };
+      }
     }
     return { color: null, isLeave: false, isHoliday: false };
   };
