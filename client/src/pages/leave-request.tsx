@@ -170,7 +170,7 @@ function MiniCalendar({
                 <span className="w-1.5 h-1.5 rounded-full bg-purple-500 flex-shrink-0" />
               )}
               {holidayType === "flex" && (
-                <span className="text-[8px] font-bold text-white bg-orange-500 rounded px-1 leading-tight">F</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0" />
               )}
             </div>
           );
@@ -474,7 +474,7 @@ export default function LeaveRequest() {
                 <span className="text-xs text-slate-600">Government Holiday</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-[8px] font-bold text-white bg-orange-500 rounded px-1.5 py-0.5 leading-tight">F</span>
+                <span className="w-3 h-3 rounded-full flex-shrink-0 bg-orange-500" />
                 <span className="text-xs text-slate-600">Flex Holiday</span>
               </div>
             </div>
@@ -489,7 +489,7 @@ export default function LeaveRequest() {
                   <div className="flex items-center gap-2 min-w-0">
                     {h.type === "government"
                       ? <span className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0" />
-                      : <span className="text-[8px] font-bold text-white bg-orange-500 rounded px-1 leading-tight flex-shrink-0">F</span>
+                      : <span className="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0" />
                     }
                     <span className="text-xs text-slate-700 font-medium truncate">{h.name}</span>
                   </div>
