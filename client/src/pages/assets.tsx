@@ -176,8 +176,8 @@ export default function Assets() {
 
         {/* Asset Requests Table */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden" data-testid="section-requests-table">
-          <div className="text-white px-6 py-4" style={{ backgroundColor: "#0F3D57" }}>
-            <h2 className="text-lg font-semibold">My Asset Requests</h2>
+          <div className="px-6 py-4">
+            <h2 className="text-lg font-semibold text-slate-900">My Asset Requests</h2>
           </div>
           {requests.length === 0 ? (
             <div className="p-8 text-center">
