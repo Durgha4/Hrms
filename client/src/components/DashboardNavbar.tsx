@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMe, useLogout } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { LogOut } from "lucide-react";
+import xLogo from "@assets/x_logo-removebg-preview_1773386473222.png";
 
 interface DashboardNavbarProps {
   title?: string;
@@ -26,11 +27,11 @@ export default function DashboardNavbar({ title = "Profile" }: DashboardNavbarPr
     <header className="fixed top-0 left-0 right-0 h-16 bg-[#0F3D57] border-b border-blue-950 z-40 flex items-center">
       <div className="flex-1 flex items-center justify-between px-8">
         {/* Left Side - Logo & Title */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 relative">
           <img
-            src="https://media.licdn.com/dms/image/v2/D560BAQGcR7_HwEkKmA/company-logo_200_200/company-logo_200_200/0/1699232615152/novintix_logo?e=2147483647&v=beta&t=3XAk48qckTMdWC62Op9WZpvM-tYNKPth5DU6yrYIk60"
-            alt="Logo"
-            className="w-8 h-8"
+            src={xLogo}
+            alt="X Logo"
+            className="w-10 h-10 -mt-6 -ml-2"
           />
           <h1 className="text-white font-bold text-lg">{title}</h1>
         </div>
