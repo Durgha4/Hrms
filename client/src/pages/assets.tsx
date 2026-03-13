@@ -32,6 +32,8 @@ export default function Assets() {
   const [assets] = useState<Asset[]>(mockAssets);
   const [requests] = useState<AssetRequest[]>(mockRequests);
   const [showRequestModal, setShowRequestModal] = useState(false);
+  const [assetType, setAssetType] = useState("");
+  const [reason, setReason] = useState("");
 
   if (isLoading) {
     return (
@@ -201,40 +203,79 @@ export default function Assets() {
             <div className="bg-white rounded-lg p-8 shadow-lg max-w-md w-full">
               <h2 className="text-lg font-bold text-slate-900 mb-6">Request Asset</h2>
               <div className="space-y-4">
+                {/* Asset Type Dropdown */}
                 <div>
-                  <label className="text-sm font-semibold text-slate-600 block mb-2">Asset Type</label>
-                  <input
-                    type="text"
-                    placeholder="Enter asset type"
+                  <label className="text-sm font-semibold text-slate-600 block mb-2">
+                    Select Asset Type <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={assetType}
+                    onChange={(e) => setAssetType(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2"
-                    style={{ focusColor: "#0F3D57" }}
-                    data-testid="input-asset-type"
-                  />
+                    style={{ borderColor: assetType === "" ? "#e2e8f0" : "#0F3D57" }}
+                    data-testid="select-asset-type"
+                  >
+                    <option value="">Select asset type</option>
+                    <option value="Laptop">Laptop</option>
+                    <option value="Monitor">Monitor</option>
+                    <option value="Headphones">Headphones</option>
+                    <option value="Mouse">Mouse</option>
+                    <option value="Keyboard">Keyboard</option>
+                  </select>
                 </div>
+                
+                {/* Reason Textarea */}
                 <div>
-                  <label className="text-sm font-semibold text-slate-600 block mb-2">Reason</label>
+                  <label className="text-sm font-semibold text-slate-600 block mb-2">
+                    Reason <span className="text-red-500">*</span>
+                  </label>
                   <textarea
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
                     placeholder="Enter reason for request"
                     rows={4}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 resize-none"
-                    style={{ focusColor: "#0F3D57" }}
+                    style={{ borderColor: reason.length < 10 && reason.length > 0 ? "#fca5a5" : "#e2e8f0" }}
                     data-testid="input-reason"
                   />
+                  <p className="text-xs text-slate-500 mt-1">Minimum 10 characters required</p>
                 </div>
+
+                {/* Action Buttons */}
                 <div className="flex gap-3">
                   <button
-                    onClick={() => setShowRequestModal(false)}
+                    onClick={() => {
+                      setShowRequestModal(false);
+                      setAssetType("");
+                      setReason("");
+                    }}
                     className="flex-1 border border-slate-300 text-slate-600 py-2 rounded-lg text-sm font-semibold hover:bg-slate-50"
                     data-testid="button-cancel"
                   >
                     Cancel
                   </button>
                   <button
-                    onClick={() => setShowRequestModal(false)}
-                    className="flex-1 text-white py-2 rounded-lg text-sm font-semibold"
-                    style={{ backgroundColor: "#0F3D57" }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#0C2D44"}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#0F3D57"}
+                    onClick={() => {
+                      setShowRequestModal(false);
+                      setAssetType("");
+                      setReason("");
+                    }}
+                    disabled={!assetType || reason.length < 10}
+                    className="flex-1 text-white py-2 rounded-lg text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ 
+                      backgroundColor: assetType && reason.length >= 10 ? "#0F3D57" : "#9ca3af",
+                      cursor: assetType && reason.length >= 10 ? "pointer" : "not-allowed"
+                    }}
+                    onMouseEnter={(e) => {
+                      if (assetType && reason.length >= 10) {
+                        e.currentTarget.style.backgroundColor = "#0C2D44";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (assetType && reason.length >= 10) {
+                        e.currentTarget.style.backgroundColor = "#0F3D57";
+                      }
+                    }}
                     data-testid="button-submit-request"
                   >
                     Submit Request
