@@ -85,22 +85,22 @@ export default function Assets() {
         {/* Summary Cards */}
         <div className="grid grid-cols-3 gap-6">
           {/* Total Assets Card */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm" data-testid="card-total-assets">
-            <p className="text-sm font-medium text-slate-600 mb-2">TOTAL ASSETS</p>
+          <div className="bg-white rounded-lg border border-blue-200 p-6 shadow-sm" data-testid="card-total-assets">
+            <p className="text-xs font-semibold mb-4" style={{ color: "#0F3D57" }}>TOTAL ASSETS</p>
             <p className="text-4xl font-bold text-slate-900">{assets.length}</p>
           </div>
 
           {/* Active Card */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm" data-testid="card-active">
-            <p className="text-sm font-medium text-slate-600 mb-2">ACTIVE</p>
+          <div className="bg-white rounded-lg border border-blue-200 p-6 shadow-sm" data-testid="card-active">
+            <p className="text-xs font-semibold mb-4" style={{ color: "#0F3D57" }}>ACTIVE</p>
             <p className="text-4xl font-bold text-slate-900">
               {assets.filter(a => a.status === "Active").length}
             </p>
           </div>
 
           {/* Pending Requests Card */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm" data-testid="card-pending">
-            <p className="text-sm font-medium text-slate-600 mb-2">PENDING REQUESTS</p>
+          <div className="bg-white rounded-lg border border-blue-200 p-6 shadow-sm" data-testid="card-pending">
+            <p className="text-xs font-semibold mb-4" style={{ color: "#0F3D57" }}>PENDING REQUESTS</p>
             <p className="text-4xl font-bold text-slate-900">
               {requests.filter(r => r.status === "Pending").length}
             </p>
@@ -122,13 +122,13 @@ export default function Assets() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50 border-b border-slate-200">
+                <thead className="text-white" style={{ backgroundColor: "#0F3D57" }}>
                   <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900">Asset</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900">Type</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900">Serial Number</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900">Assigned Date</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900">Status</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Asset</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Type</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Serial Number</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Assigned Date</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -166,13 +166,13 @@ export default function Assets() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50 border-b border-slate-200">
+                <thead className="text-white" style={{ backgroundColor: "#0F3D57" }}>
                   <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900">Asset Type</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900">Reason</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900">Request Date</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900">Status</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900">Comments</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Asset Type</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Reason</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Request Date</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Comments</th>
                   </tr>
                 </thead>
                 <tbody>
