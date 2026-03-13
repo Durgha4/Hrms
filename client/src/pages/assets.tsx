@@ -71,7 +71,10 @@ export default function Assets() {
           </div>
           <Button
             onClick={() => setShowRequestModal(true)}
-            className="bg-blue-700 text-white hover:bg-blue-800 flex items-center gap-2"
+            className="text-white flex items-center gap-2"
+            style={{ backgroundColor: "#0F3D57" }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#0C2D44"}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#0F3D57"}
             data-testid="button-request-asset"
           >
             <Plus className="w-4 h-4" />
@@ -106,7 +109,7 @@ export default function Assets() {
 
         {/* Assets Table */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden" data-testid="section-assets-table">
-          <div className="bg-blue-900 text-white px-6 py-4">
+          <div className="text-white px-6 py-4" style={{ backgroundColor: "#0F3D57" }}>
             <h2 className="text-lg font-semibold">Assets</h2>
           </div>
           {assets.length === 0 ? (
@@ -150,7 +153,7 @@ export default function Assets() {
 
         {/* Asset Requests Table */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden" data-testid="section-requests-table">
-          <div className="bg-blue-900 text-white px-6 py-4">
+          <div className="text-white px-6 py-4" style={{ backgroundColor: "#0F3D57" }}>
             <h2 className="text-lg font-semibold">My Asset Requests</h2>
           </div>
           {requests.length === 0 ? (
@@ -203,7 +206,8 @@ export default function Assets() {
                   <input
                     type="text"
                     placeholder="Enter asset type"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2"
+                    style={{ focusColor: "#0F3D57" }}
                     data-testid="input-asset-type"
                   />
                 </div>
@@ -212,7 +216,8 @@ export default function Assets() {
                   <textarea
                     placeholder="Enter reason for request"
                     rows={4}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 resize-none"
+                    style={{ focusColor: "#0F3D57" }}
                     data-testid="input-reason"
                   />
                 </div>
@@ -226,7 +231,10 @@ export default function Assets() {
                   </button>
                   <button
                     onClick={() => setShowRequestModal(false)}
-                    className="flex-1 bg-blue-700 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-800"
+                    className="flex-1 text-white py-2 rounded-lg text-sm font-semibold"
+                    style={{ backgroundColor: "#0F3D57" }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#0C2D44"}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#0F3D57"}
                     data-testid="button-submit-request"
                   >
                     Submit Request
