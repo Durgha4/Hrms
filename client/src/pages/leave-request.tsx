@@ -42,12 +42,48 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string; cal
 };
 
 const UPCOMING_HOLIDAYS: Holiday[] = [
-  { name: "Ugadi",                      date: "Mar 19", type: "government" },
-  { name: "Id-ul-Fitr (Ramzan)",        date: "Mar 31", type: "government" },
-  { name: "Good Friday",                date: "Apr 3",  type: "government" },
-  { name: "Dr. B.R. Ambedkar Jayanti", date: "Apr 14", type: "government" },
-  { name: "Flex Friday",               date: "Apr 10", type: "flex" },
-  { name: "Flex Day",                  date: "May 2",  type: "flex" },
+  // January
+  { name: "New Year's Day",              date: "Jan 1",  type: "government" },
+  { name: "Makar Sankranti",             date: "Jan 14", type: "government" },
+  { name: "Republic Day",                date: "Jan 26", type: "government" },
+  // February
+  { name: "Maha Shivaratri",             date: "Feb 26", type: "government" },
+  { name: "Flex Day",                    date: "Feb 27", type: "flex" },
+  // March
+  { name: "Holi",                        date: "Mar 16", type: "government" },
+  { name: "Ugadi",                       date: "Mar 19", type: "government" },
+  { name: "Id-ul-Fitr (Ramzan)",         date: "Mar 31", type: "government" },
+  // April
+  { name: "Good Friday",                 date: "Apr 3",  type: "government" },
+  { name: "Flex Friday",                 date: "Apr 10", type: "flex" },
+  { name: "Dr. B.R. Ambedkar Jayanti",  date: "Apr 14", type: "government" },
+  // May
+  { name: "Maharashtra Day",             date: "May 1",  type: "government" },
+  { name: "Flex Day",                    date: "May 2",  type: "flex" },
+  { name: "Buddha Purnima",              date: "May 12", type: "government" },
+  // June
+  { name: "Id-ul-Adha (Bakrid)",         date: "Jun 7",  type: "government" },
+  { name: "Flex Day",                    date: "Jun 8",  type: "flex" },
+  // July
+  { name: "Muharram",                    date: "Jul 27", type: "government" },
+  // August
+  { name: "Independence Day",            date: "Aug 15", type: "government" },
+  { name: "Janmashtami",                 date: "Aug 22", type: "government" },
+  { name: "Flex Day",                    date: "Aug 24", type: "flex" },
+  // September
+  { name: "Milad-un-Nabi",              date: "Sep 5",  type: "government" },
+  { name: "Ganesh Chaturthi",            date: "Sep 11", type: "government" },
+  // October
+  { name: "Gandhi Jayanti",              date: "Oct 2",  type: "government" },
+  { name: "Dussehra",                    date: "Oct 20", type: "government" },
+  { name: "Flex Day",                    date: "Oct 21", type: "flex" },
+  // November
+  { name: "Diwali",                      date: "Nov 1",  type: "government" },
+  { name: "Guru Nanak Jayanti",          date: "Nov 5",  type: "government" },
+  { name: "Flex Day",                    date: "Nov 6",  type: "flex" },
+  // December
+  { name: "Christmas Day",               date: "Dec 25", type: "government" },
+  { name: "Flex Day",                    date: "Dec 26", type: "flex" },
 ];
 
 /* ─── Mini Calendar ─────────────────────────────────────── */
@@ -92,12 +128,21 @@ function MiniCalendar({
   referenceDate,
   leaveDates,
   holidays = [],
+  onMonthChange,
 }: {
   referenceDate: Date;
   leaveDates: { start: string; end: string; status: string }[];
   holidays?: Holiday[];
+  onMonthChange?: (year: number, month: number) => void;
 }) {
   const [viewDate, setViewDate] = useState(new Date(referenceDate));
+
+  const navigate = (dir: -1 | 1) => {
+    const d = new Date(viewDate);
+    d.setMonth(d.getMonth() + dir);
+    setViewDate(d);
+    onMonthChange?.(d.getFullYear(), d.getMonth());
+  };
   const year  = viewDate.getFullYear();
   const month = viewDate.getMonth();
   const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
