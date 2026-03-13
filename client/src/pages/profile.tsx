@@ -163,7 +163,7 @@ export default function Profile() {
   };
 
   return (
-    <DashboardLayout title="Employee Profile">
+    <DashboardLayout title="Profile">
       <div className="flex gap-6 max-w-6xl">
 
         {/* ── Left Column ─────────────────────────────────── */}
