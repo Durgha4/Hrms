@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import DashboardLayout from "@/components/DashboardLayout";
 
 /* ─── Types ─────────────────────────────────────────────── */
+interface Skill { id: string; name: string; expertise: number; }
 interface BasicDetails { employeeId: string; firstName: string; lastName: string; dateOfJoining: string; nationality: string; dateOfBirth: string; maritalStatus: string; religion: string; }
 interface ContactInfo { officialEmail: string; mobileNumber: string; personalEmail: string; emergencyContact: string; }
 interface AddressDetails { address: string; city: string; state: string; pinCode: string; country: string; workLocation: string; }
@@ -99,8 +100,17 @@ export default function Profile() {
   const [about, setAbout] = useState("Passionate AI Developer with hands-on experience in machine learning, NLP, and building intelligent applications. Quick learner with a collaborative mindset.");
   const [aboutDraft, setAboutDraft] = useState(about);
 
-  const [skills, setSkills] = useState(["Python", "Machine Learning", "React", "Node.js", "TensorFlow"]);
-  const [newSkill, setNewSkill] = useState("");
+  const [skills, setSkills] = useState<Skill[]>([
+    { id: "1", name: "Python", expertise: 85 },
+    { id: "2", name: "Machine Learning", expertise: 75 },
+    { id: "3", name: "React", expertise: 80 },
+    { id: "4", name: "Node.js", expertise: 70 },
+    { id: "5", name: "TensorFlow", expertise: 65 },
+  ]);
+  const [showAddSkillModal, setShowAddSkillModal] = useState(false);
+  const [newSkillName, setNewSkillName] = useState("");
+  const [newSkillExpertise, setNewSkillExpertise] = useState(50);
+  const [editingSkillId, setEditingSkillId] = useState<string | null>(null);
 
   const [addressDetails, setAddressDetails] = useState<AddressDetails>({ address: "12, Anna Nagar", city: "Chennai", state: "Tamil Nadu", pinCode: "600040", country: "India", workLocation: "Chennai HQ" });
   const [addressDraft, setAddressDraft] = useState<Record<string, string>>({ ...addressDetails });
@@ -156,10 +166,21 @@ export default function Profile() {
   const cancelEdit = () => setEditingSection(null);
 
   const addSkill = () => {
-    if (newSkill.trim() && !skills.includes(newSkill.trim())) {
-      setSkills([...skills, newSkill.trim()]);
-      setNewSkill("");
+    if (newSkillName.trim() && !skills.find(s => s.name.toLowerCase() === newSkillName.trim().toLowerCase())) {
+      setSkills([...skills, { id: Date.now().toString(), name: newSkillName.trim(), expertise: newSkillExpertise }]);
+      setNewSkillName("");
+      setNewSkillExpertise(50);
+      setShowAddSkillModal(false);
     }
+  };
+
+  const updateSkillExpertise = (id: string, newExpertise: number) => {
+    setSkills(skills.map(s => s.id === id ? { ...s, expertise: newExpertise } : s));
+    setEditingSkillId(null);
+  };
+
+  const deleteSkill = (id: string) => {
+    setSkills(skills.filter(s => s.id !== id));
   };
 
   return (
@@ -249,21 +270,105 @@ export default function Profile() {
           <div className="bg-white rounded-2xl shadow-sm p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-bold text-slate-800">Skills &amp; Expertise</h3>
-            </div>
-            <div className="flex flex-wrap gap-2 mb-4">
-              {skills.map(skill => (
-                <span key={skill} className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold">
-                  {skill}
-                  <button onClick={() => setSkills(skills.filter(s => s !== skill))} className="hover:text-red-500 transition-colors"><X className="w-3 h-3" /></button>
-                </span>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <Input value={newSkill} onChange={e => setNewSkill(e.target.value)} onKeyDown={e => e.key === "Enter" && addSkill()} placeholder="Add a skill..." className="text-xs h-8 flex-1" />
-              <button onClick={addSkill} className="flex items-center gap-1 px-3 py-1.5 bg-blue-700 text-white rounded-lg text-xs font-semibold hover:bg-blue-800 transition-colors">
-                <Plus className="w-3.5 h-3.5" /> Add
+              <button onClick={() => setShowAddSkillModal(true)} className="flex items-center gap-1 px-2 py-1 bg-blue-700 text-white rounded-lg text-xs font-semibold hover:bg-blue-800 transition-colors">
+                <Plus className="w-3.5 h-3.5" /> Add Skill
               </button>
             </div>
+            <div className="space-y-3">
+              {skills.map(skill => (
+                <div key={skill.id} className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-800">{skill.name}</span>
+                    <div className="flex items-center gap-2">
+                      {editingSkillId === skill.id ? (
+                        <div className="flex gap-1">
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={skill.expertise}
+                            onChange={e => updateSkillExpertise(skill.id, parseInt(e.target.value))}
+                            className="w-12 px-1 py-0.5 border border-slate-200 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          <button
+                            onClick={() => setEditingSkillId(null)}
+                            className="text-xs text-blue-600 hover:text-blue-800 font-semibold"
+                          >
+                            Done
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <span className="text-xs text-slate-600">{skill.expertise}%</span>
+                          <button onClick={() => setEditingSkillId(skill.id)} className="p-0.5 hover:bg-slate-100 rounded transition-colors">
+                            <Edit2 className="w-3 h-3 text-slate-400" />
+                          </button>
+                          <button onClick={() => deleteSkill(skill.id)} className="p-0.5 hover:bg-red-50 rounded transition-colors">
+                            <X className="w-3 h-3 text-slate-400 hover:text-red-600" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-300"
+                      style={{ width: `${skill.expertise}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Add Skill Modal */}
+            {showAddSkillModal && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowAddSkillModal(false)}>
+                <div className="bg-white rounded-xl p-6 shadow-lg max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
+                  <h2 className="text-lg font-bold text-slate-900 mb-4">Add Skill</h2>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-xs font-semibold text-slate-600 block mb-1">Skill Name</label>
+                      <Input
+                        value={newSkillName}
+                        onChange={e => setNewSkillName(e.target.value)}
+                        placeholder="e.g., Python, React, etc."
+                        className="text-xs h-8"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-600 block mb-2">Expertise Level: {newSkillExpertise}%</label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={newSkillExpertise}
+                        onChange={e => setNewSkillExpertise(parseInt(e.target.value))}
+                        className="w-full h-2 bg-slate-200 rounded-full appearance-none cursor-pointer accent-blue-600"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setShowAddSkillModal(false);
+                          setNewSkillName("");
+                          setNewSkillExpertise(50);
+                        }}
+                        className="flex-1 border border-slate-300 text-slate-600 py-2 rounded-lg text-xs font-semibold hover:bg-slate-50 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={addSkill}
+                        disabled={!newSkillName.trim()}
+                        className="flex-1 bg-blue-700 text-white py-2 rounded-lg text-xs font-semibold hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Add Skill
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* 3. Address Details */}
